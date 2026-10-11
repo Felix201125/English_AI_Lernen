@@ -9,11 +9,15 @@ function apiBase(): string {
   return "";
 }
 
+const VIDEO_UNAVAILABLE =
+  "Video gerade nicht verfügbar, bitte später erneut versuchen.";
+
 export async function callServerAI(payload: {
   action: string;
   question?: string;
   student?: Record<string, unknown>;
   text?: string;
+  schema?: string;
 }): Promise<string | null> {
   const base = apiBase();
   if (!base || typeof window === "undefined") return null;
@@ -38,14 +42,16 @@ export type DailyRoom = {
   name: string;
   url: string;
   studentId?: string;
+  lessonId?: string | null;
+  ownerToken?: string | null;
+  participantToken?: string | null;
+  expiresAt?: string;
 };
 
 async function dailyPost(body: Record<string, unknown>) {
   const base = apiBase();
   if (!base || typeof window === "undefined") {
-    throw new Error(
-      "API nicht erreichbar. Nach dem Upload auf Hetzner Daily-Key in api/config.php eintragen."
-    );
+    throw new Error(VIDEO_UNAVAILABLE);
   }
 
   const res = await fetch(`${base}/daily.php`, {
@@ -54,38 +60,55 @@ async function dailyPost(body: Record<string, unknown>) {
     body: JSON.stringify(body),
   });
 
-  const data = (await res.json()) as {
-    ok?: boolean;
-    error?: string;
-    room?: DailyRoom | null;
-  };
+  let data: { ok?: boolean; error?: string; room?: DailyRoom | null } = {};
+  try {
+    data = (await res.json()) as typeof data;
+  } catch {
+    throw new Error(VIDEO_UNAVAILABLE);
+  }
 
   if (!res.ok || !data.ok) {
-    throw new Error(
-      data.error ||
-        "Daily-Anfrage fehlgeschlagen. Prüfe daily_api_key in api/config.php."
-    );
+    throw new Error(data.error || VIDEO_UNAVAILABLE);
   }
 
   return data.room ?? null;
 }
 
-export async function createDailyMeeting(studentId: string): Promise<DailyRoom> {
-  const room = await dailyPost({ action: "create", studentId });
+export async function createDailyMeeting(
+  studentId: string,
+  opts?: {
+    lessonId?: string;
+    durationMinutes?: number;
+    displayName?: string;
+    role?: "teacher" | "student";
+  }
+): Promise<DailyRoom> {
+  const room = await dailyPost({
+    action: "create",
+    studentId,
+    lessonId: opts?.lessonId,
+    durationMinutes: opts?.durationMinutes,
+    displayName: opts?.displayName,
+    role: opts?.role ?? "teacher",
+  });
   if (!room?.url) {
-    throw new Error("Meeting konnte nicht erstellt werden.");
+    throw new Error(VIDEO_UNAVAILABLE);
   }
   return room;
 }
 
 export async function fetchDailyMeeting(
-  studentId?: string
+  studentId?: string,
+  lessonId?: string
 ): Promise<DailyRoom | null> {
   const base = apiBase();
   if (!base || typeof window === "undefined") return null;
   try {
-    const q = studentId ? `?studentId=${encodeURIComponent(studentId)}` : "";
-    const res = await fetch(`${base}/daily.php${q}`, { method: "GET" });
+    const q = new URLSearchParams();
+    if (studentId) q.set("studentId", studentId);
+    if (lessonId) q.set("lessonId", lessonId);
+    const qs = q.toString() ? `?${q}` : "";
+    const res = await fetch(`${base}/daily.php${qs}`, { method: "GET" });
     const data = (await res.json()) as {
       ok?: boolean;
       room?: DailyRoom | null;
@@ -97,10 +120,12 @@ export async function fetchDailyMeeting(
   }
 }
 
-export async function endDailyMeetingRemote(): Promise<void> {
+export async function endDailyMeetingRemote(
+  lessonId?: string
+): Promise<void> {
   try {
-    await dailyPost({ action: "end" });
+    await dailyPost({ action: "end", lessonId });
   } catch {
-    // ignore — local UI still clears
+    /* ignore */
   }
 }

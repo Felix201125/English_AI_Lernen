@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
 import { AppProvider } from "@/components/providers/app-provider";
+import { ToastProvider } from "@/components/ui/toast";
 import { BRAND } from "@/lib/brand";
 import "./globals.css";
 
@@ -29,7 +30,9 @@ export default function RootLayout({
       <body
         className={`${plusJakarta.variable} ${spaceGrotesk.variable} antialiased text-foreground`}
       >
-        <AppProvider>{children}</AppProvider>
+        <ToastProvider>
+          <AppProvider>{children}</AppProvider>
+        </ToastProvider>
       </body>
     </html>
   );
