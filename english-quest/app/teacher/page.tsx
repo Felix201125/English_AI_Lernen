@@ -33,9 +33,16 @@ export default function TeacherDashboardPage() {
 
       {(notifications.some((n) => !n.read) || pending > 0) && (
         <div className="eq-card border-amber-500/30 p-4 text-sm text-amber-100">
-          {pending} offene Schüler-Anfragen ·{" "}
-          {notifications.filter((n) => !n.read).length} Benachrichtigungen
-          (inkl. Solo-Abschlüsse)
+          {pending === 1
+            ? "1 offene Schüler-Anfrage"
+            : `${pending} offene Schüler-Anfragen`}
+          {" · "}
+          {(() => {
+            const n = notifications.filter((x) => !x.read).length;
+            return n === 1
+              ? "1 Benachrichtigung (inkl. Solo-Abschlüsse)"
+              : `${n} Benachrichtigungen (inkl. Solo-Abschlüsse)`;
+          })()}
           <Link href="/teacher/inbox" className="ml-3 underline">
             Anfragen öffnen
           </Link>

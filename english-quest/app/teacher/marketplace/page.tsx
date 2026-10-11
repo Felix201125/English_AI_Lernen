@@ -18,10 +18,18 @@ import { formatSlotDe } from "@/lib/marketplace/availability";
 import { cn } from "@/lib/utils";
 
 /** Lehrkraft: Profil, Verfügbarkeit, Buchungsanfragen — Gegenstück zur Suche */
+const SEED_PROFILES = [
+  { id: "seed-teacher-lena", label: "Lena M. (Test-Seed)" },
+  { id: "seed-teacher-jonas", label: "Jonas K. (Test-Seed)" },
+  { id: "seed-teacher-sara", label: "Sara H. (Test-Seed)" },
+];
+
 export default function TeacherMarketplacePage() {
   const { authUser } = useApp();
-  const teacherId =
-    authUser?.id?.replace(/[^a-z0-9\-]/gi, "") || "teacher-local";
+  const ownId =
+    authUser?.marketplaceTeacherId ||
+    (authUser?.id ? `teacher-${authUser.id.replace(/[^a-z0-9\-]/gi, "")}` : "teacher-local");
+  const [teacherId, setTeacherId] = useState(ownId);
 
   const [firstName, setFirstName] = useState(authUser?.name?.split(" ")[0] ?? "");
   const [lastInitial, setLastInitial] = useState("Q");
@@ -39,15 +47,20 @@ export default function TeacherMarketplacePage() {
   const [summary, setSummary] = useState("");
   const [homework, setHomework] = useState("");
   const [completeId, setCompleteId] = useState<string | null>(null);
+  const [declineReason, setDeclineReason] = useState("");
 
   const loadLessons = async () => {
     try {
       const list = await fetchLessons({ teacherId });
       setLessons(list);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Fehler");
+      setError(e instanceof Error ? e.message : "Laden fehlgeschlagen.");
     }
   };
+
+  useEffect(() => {
+    setTeacherId(ownId);
+  }, [ownId]);
 
   useEffect(() => {
     void loadLessons();
@@ -75,7 +88,7 @@ export default function TeacherMarketplacePage() {
       setStatus(
         t.approved
           ? "Profil gespeichert."
-          : "Profil gespeichert — wartet auf Admin-Freigabe für die Suche."
+          : "Profil gespeichert. Es wird nach einer kurzen Prüfung sichtbar."
       );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Fehler");
@@ -105,11 +118,24 @@ export default function TeacherMarketplacePage() {
           Marktplatz-Profil
         </h1>
         <p className="mt-1 text-sm text-slate-400">
-          Sichtbar für Schüler nach Admin-Freigabe. Keine privaten Kontaktdaten.
+          Dein Profil wird nach einer kurzen Prüfung sichtbar. Kontakt nur über
+          Qestra — keine privaten Kontaktdaten.
         </p>
-        <p className="text-[11px] text-slate-500">
-          PAYMENT HOOK: Preis in Credits — Zahlungsanbieter später anbinden.
-        </p>
+        <label className="mt-3 block text-xs text-slate-400">
+          Profil für Buchungen
+          <select
+            className="mt-1 w-full max-w-md rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-white"
+            value={teacherId}
+            onChange={(e) => setTeacherId(e.target.value)}
+          >
+            <option value={ownId}>Mein Profil</option>
+            {SEED_PROFILES.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
       {(status || error) && (
@@ -260,17 +286,29 @@ export default function TeacherMarketplacePage() {
                     >
                       Bestätigen
                     </Button>
-                    <Button
-                      variant="secondary"
-                      onClick={() =>
-                        void cancelLesson(l.id, "Abgelehnt").then(() => {
-                          setStatus("Abgelehnt.");
-                          void loadLessons();
-                        })
-                      }
-                    >
-                      Ablehnen
-                    </Button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <input
+                        className="rounded-lg border border-white/10 bg-black/30 px-2 py-1 text-xs"
+                        placeholder="Grund (optional)"
+                        value={declineReason}
+                        onChange={(e) => setDeclineReason(e.target.value)}
+                      />
+                      <Button
+                        variant="secondary"
+                        onClick={() =>
+                          void cancelLesson(
+                            l.id,
+                            declineReason || "Abgelehnt"
+                          ).then(() => {
+                            setStatus("Abgelehnt — Schüler wurde informiert.");
+                            setDeclineReason("");
+                            void loadLessons();
+                          })
+                        }
+                      >
+                        Ablehnen
+                      </Button>
+                    </div>
                   </>
                 )}
                 {l.status === "confirmed" && (

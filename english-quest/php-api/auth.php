@@ -32,6 +32,7 @@ if (!is_dir($dataDir)) {
 if (!is_file($usersFile)) {
     eq_write_json($usersFile, []);
 }
+eq_ensure_seed_teachers($usersFile);
 
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -450,12 +451,18 @@ function eq_student_id(string $name, string $userId): string
 
 function eq_public_user(array $u): array
 {
+    $role = $u['role'] ?? 'student';
+    $marketplaceTeacherId = $u['marketplaceTeacherId'] ?? null;
+    if ($role === 'teacher' && !$marketplaceTeacherId) {
+        $marketplaceTeacherId = 'teacher-' . preg_replace('/[^a-z0-9\-]/i', '', (string)($u['id'] ?? ''));
+    }
     return [
         'id' => $u['id'] ?? '',
         'email' => $u['email'] ?? '',
         'name' => $u['name'] ?? '',
-        'role' => $u['role'] ?? 'student',
+        'role' => $role,
         'studentId' => $u['studentId'] ?? null,
+        'marketplaceTeacherId' => $marketplaceTeacherId,
         'hasPassword' => !empty($u['passwordHash']),
         'hasGoogle' => !empty($u['googleSub']),
         'createdAt' => $u['createdAt'] ?? null,
@@ -565,4 +572,52 @@ function eq_write_json(string $file, array $data): void
         json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
         LOCK_EX
     );
+}
+
+/** DEV-SEED Lehrkräfte zum Testen von Buchungen (klar gekennzeichnet) */
+function eq_ensure_seed_teachers(string $usersFile): void
+{
+    $users = eq_read_json($usersFile) ?: [];
+    $seeds = [
+        [
+            'email' => 'lena@qestra.seed',
+            'name' => 'Lena M.',
+            'marketplaceTeacherId' => 'seed-teacher-lena',
+        ],
+        [
+            'email' => 'jonas@qestra.seed',
+            'name' => 'Jonas K.',
+            'marketplaceTeacherId' => 'seed-teacher-jonas',
+        ],
+        [
+            'email' => 'sara@qestra.seed',
+            'name' => 'Sara H.',
+            'marketplaceTeacherId' => 'seed-teacher-sara',
+        ],
+    ];
+    $changed = false;
+    foreach ($seeds as $seed) {
+        $exists = false;
+        foreach ($users as $u) {
+            if (($u['email'] ?? '') === $seed['email']) {
+                $exists = true;
+                break;
+            }
+        }
+        if ($exists) continue;
+        $users[] = [
+            'id' => $seed['marketplaceTeacherId'],
+            'name' => $seed['name'],
+            'email' => $seed['email'],
+            'role' => 'teacher',
+            'passwordHash' => password_hash('qestra-seed', PASSWORD_DEFAULT),
+            'marketplaceTeacherId' => $seed['marketplaceTeacherId'],
+            '_seed' => true,
+            'createdAt' => date('c'),
+        ];
+        $changed = true;
+    }
+    if ($changed) {
+        eq_write_json($usersFile, $users);
+    }
 }
