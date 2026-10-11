@@ -1,112 +1,51 @@
 /**
- * Fachstruktur Qestra — fachneutrales Kernmodell.
- * Phase 1: Englisch vollständig. Weitere Fächer als Instanzen desselben Modells.
+ * Fachstruktur Qestra — Katalog + Hilfsfunktionen.
+ * Phase 1: Englisch mit Inhalten; andere Fächer sichtbar/buchbar, Inhalte „in Vorbereitung“.
  */
 
-export type SubjectId =
-  | "english"
-  | "math"
-  | "science"
-  | "history"
-  | "language"; // weitere Fremdsprachen (generisch)
+export type {
+  SubjectCategoryId,
+  SubjectDefinition,
+  SubjectGradeBand,
+  SubjectId,
+  SubjectSkillAxis,
+  SubjectStatus,
+} from "./catalog";
 
-export type SubjectSkillAxis =
-  | "speaking"
-  | "listening"
-  | "reading"
-  | "writing"
-  | "vocabulary"
-  | "grammar"
-  | "calculation"
-  | "reasoning"
-  | "facts"
-  | "methods";
+export {
+  DEFAULT_SUBJECT_ID,
+  SUBJECT_CATALOG,
+  SUBJECT_CATEGORIES,
+  bookableSubjects,
+  getSubject,
+  getSubjectCatalog,
+  selectableSubjects,
+} from "./catalog";
 
-export type SubjectDefinition = {
-  id: SubjectId;
-  labelDe: string;
-  labelEn: string;
-  /** Phase-1-Referenzfach vs. später */
-  status: "active" | "planned";
-  /** Skill-Achsen für Learning State / UI */
-  skillAxes: SubjectSkillAxis[];
-  /** z. B. Mathe: keine Toleranz für Rechenfehler */
-  exactness: "tolerant" | "strict";
-  notes: string;
-};
+import {
+  SUBJECT_CATALOG,
+  getSubject as getSubjectDef,
+  type SubjectDefinition,
+  type SubjectId,
+} from "./catalog";
 
-export const SUBJECTS: Record<SubjectId, SubjectDefinition> = {
-  english: {
-    id: "english",
-    labelDe: "Englisch",
-    labelEn: "English",
-    status: "active",
-    skillAxes: [
-      "speaking",
-      "listening",
-      "reading",
-      "writing",
-      "vocabulary",
-      "grammar",
-    ],
-    exactness: "tolerant",
-    notes: "Referenzfach Phase 1 — Aussprache, Grammatik, Vokabular, Konversation.",
-  },
-  math: {
-    id: "math",
-    labelDe: "Mathematik",
-    labelEn: "Math",
-    status: "planned",
-    skillAxes: ["calculation", "reasoning", "methods"],
-    exactness: "strict",
-    notes: "Exakte Berechnungen, Schritt-für-Schritt — AI-3-Pipeline Pflicht.",
-  },
-  science: {
-    id: "science",
-    labelDe: "Naturwissenschaften",
-    labelEn: "Science",
-    status: "planned",
-    skillAxes: ["facts", "reasoning", "methods"],
-    exactness: "strict",
-    notes: "Faktentreue (Formeln, Gesetze); Sicherheitshinweise bei Experimenten.",
-  },
-  history: {
-    id: "history",
-    labelDe: "Geschichte",
-    labelEn: "History",
-    status: "planned",
-    skillAxes: ["facts", "reading", "writing", "reasoning"],
-    exactness: "strict",
-    notes: "Chronologie, Quellen, Zusammenhänge.",
-  },
-  language: {
-    id: "language",
-    labelDe: "Weitere Sprachen",
-    labelEn: "Other languages",
-    status: "planned",
-    skillAxes: [
-      "speaking",
-      "listening",
-      "reading",
-      "writing",
-      "vocabulary",
-      "grammar",
-    ],
-    exactness: "tolerant",
-    notes: "Gleiches Sprachmodell wie Englisch, andere Prompt-Bibliothek.",
-  },
-};
-
-export const DEFAULT_SUBJECT_ID: SubjectId = "english";
-
-export function getSubject(id: SubjectId = DEFAULT_SUBJECT_ID): SubjectDefinition {
-  return SUBJECTS[id] ?? SUBJECTS.english;
-}
+/** @deprecated Kompatibilität — nutze SUBJECT_CATALOG */
+export const SUBJECTS: Record<string, SubjectDefinition> = Object.fromEntries(
+  SUBJECT_CATALOG.map((s) => [s.id, s])
+);
 
 export function activeSubjects(): SubjectDefinition[] {
-  return Object.values(SUBJECTS).filter((s) => s.status === "active");
+  return SUBJECT_CATALOG.filter((s) => s.status === "active");
 }
 
 export function plannedSubjects(): SubjectDefinition[] {
-  return Object.values(SUBJECTS).filter((s) => s.status === "planned");
+  return SUBJECT_CATALOG.filter((s) => s.status === "preparing");
+}
+
+export function isSubjectSelectable(id: SubjectId): boolean {
+  return getSubjectDef(id).status === "active";
+}
+
+export function isSubjectBookable(id: SubjectId): boolean {
+  return getSubjectDef(id).bookable;
 }
