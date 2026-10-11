@@ -32,6 +32,8 @@ export default function StudentHomePage() {
     recordVoiceRequest,
     messages,
     setupProfile,
+    persistReady,
+    authUser,
   } = useApp();
   const i18n = t();
   const [prompt, setPrompt] = useState("");
@@ -102,6 +104,19 @@ export default function StudentHomePage() {
     } finally {
       setBusy(false);
     }
+  }
+
+  if (!persistReady && authUser?.role === "student") {
+    return (
+      <div className="space-y-6" aria-busy="true" aria-label={i18n.common.loading}>
+        <div className="h-10 w-2/3 animate-pulse rounded-xl bg-white/10" />
+        <div className="h-24 animate-pulse rounded-2xl bg-white/5" />
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="h-40 animate-pulse rounded-2xl bg-white/5" />
+          <div className="h-40 animate-pulse rounded-2xl bg-white/5" />
+        </div>
+      </div>
+    );
   }
 
   return (

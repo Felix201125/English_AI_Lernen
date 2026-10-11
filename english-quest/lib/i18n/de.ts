@@ -28,7 +28,7 @@ export const de = {
     why: "Warum?",
     credits: "Credits",
     xp: "XP",
-    empty: "Noch nichts hier.",
+    empty: "Noch nichts da.",
     impressum: "Impressum",
     privacy: "Datenschutz",
     contact: "Kontakt",
@@ -167,8 +167,7 @@ export const de = {
     book: "Stunde buchen",
     noResults: "Keine Lehrkräfte für diese Filter.",
     privacyNote: "Keine Telefonnummern oder privaten Kontaktdaten — nur über Qestra.",
-    // PAYMENT HOOK
-    paymentLater: "Bezahlung folgt später (Credits vorbereitet).",
+    paymentLater: "Kosten werden in Credits angezeigt (Bezahlung folgt später).",
   },
   lessons: {
     title: "Meine Stunden",

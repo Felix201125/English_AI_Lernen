@@ -1,21 +1,15 @@
 # FTP-Push
 
-## Aktueller Stand — Auftrag 2 (Fächer / Lehrkräfte / Stunden)
+## Aktueller Stand — Auftrag 3
 
-Hochladen ins Document Root (`public_html/`):
+Hochladen:
 
-- `_next/` — neue Bundles
-- `student/` — inkl. `teachers/`, `lessons/`, aktualisierte Fachauswahl/Onboarding
-- `teacher/` — inkl. `marketplace/`
-- `api/marketplace.php` — Lehrkräfte, Buchungen, Chat, iCal (+ Seed beim ersten Aufruf)
-- `api/.htaccess`, `api/data/.htaccess`, `api/config.example.php`
+- `_next/`, `student/`, `teacher/`, `impressum/`, `datenschutz/`
+- `api/daily.php`, `api/teacher.php`, `api/marketplace.php`, `api/auth.php`
+- `api/.htaccess`, `api/data/.htaccess`
 
-Nicht hochladen: `api/config.php` mit Keys (bleibt auf dem Server).
+Nicht: `api/config.php` (Keys behalten).
 
-Nach Upload prüfen:
+Seed-Lehrkräfte: `lena@qestra.seed` / Passwort `qestra-seed`
 
-1. Schüler → Start-Ansicht (neues Konto) / Fachauswahl
-2. `/student/teachers/` — Seed-Lehrkräfte
-3. Buchung → `/student/lessons/`
-4. Lehrer → `/teacher/marketplace/`
-5. Status: `docs/AUFTRAG-2-STATUS.md`
+Status: `docs/AUFTRAG-3-STATUS.md`

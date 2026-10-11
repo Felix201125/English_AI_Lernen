@@ -38,6 +38,8 @@ export default function TeacherProfilePage() {
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmTrial, setConfirmTrial] = useState(false);
 
   const tz =
     setupProfile?.timezone ||
@@ -67,11 +69,18 @@ export default function TeacherProfilePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const book = async (isTrial: boolean) => {
+  const openConfirm = (isTrial: boolean) => {
     if (!selected) {
       setError("Bitte einen Termin wählen.");
       return;
     }
+    setConfirmTrial(isTrial);
+    setConfirmOpen(true);
+    setError("");
+  };
+
+  const book = async () => {
+    if (!selected) return;
     setBusy(true);
     setError("");
     setStatus("");
@@ -82,10 +91,11 @@ export default function TeacherProfilePage() {
         subjectId,
         topic,
         startsAt: selected,
-        durationMinutes: isTrial ? 25 : duration,
-        isTrial,
+        durationMinutes: confirmTrial ? 25 : duration,
+        isTrial: confirmTrial,
         autoConfirm: false,
       });
+      setConfirmOpen(false);
       setStatus(
         lesson.status === "pending"
           ? "Anfrage gesendet — die Lehrkraft bestätigt gleich."
@@ -244,21 +254,70 @@ export default function TeacherProfilePage() {
           )}
         </ul>
         <div className="flex flex-wrap gap-2">
-          <Button
-            disabled={busy}
-            onClick={() => void book(true)}
-          >
+          <Button disabled={busy} onClick={() => openConfirm(true)}>
             {i18n.teachers.trial} ({teacher.trialMinutes} Min.)
           </Button>
           <Button
             variant="secondary"
             disabled={busy}
-            onClick={() => void book(false)}
+            onClick={() => openConfirm(false)}
           >
             {i18n.teachers.book}
           </Button>
         </div>
       </section>
+
+      {confirmOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="book-confirm-title"
+        >
+          <div className="eq-card max-w-md space-y-3 p-5">
+            <h2 id="book-confirm-title" className="font-display text-xl text-white">
+              Zusammenfassung
+            </h2>
+            <ul className="space-y-1 text-sm text-slate-300">
+              <li>
+                Lehrkraft: {teacher.firstName} {teacher.lastInitial}.
+              </li>
+              <li>Fach: {getSubject(subjectId).labelDe}</li>
+              <li>
+                Termin: {selected ? formatSlotDe(selected, tz) : "—"}
+              </li>
+              <li>
+                Dauer: {confirmTrial ? 25 : duration} Minuten
+                {confirmTrial ? " (Kennenlernen)" : ""}
+              </li>
+              {topic && <li>Thema: {topic}</li>}
+              <li>
+                Kosten:{" "}
+                {confirmTrial
+                  ? "vergünstigt / Kennenlernen"
+                  : teacher.priceCreditsPerHour != null
+                    ? `${teacher.priceCreditsPerHour} Credits / Std.`
+                    : "nach Absprache"}
+              </li>
+              <li className="text-xs text-slate-500">
+                Absage: kostenlos bis 24 Stunden vorher (Regel kann die Lehrkraft
+                anpassen).
+              </li>
+            </ul>
+            <div className="flex gap-2">
+              <Button disabled={busy} onClick={() => void book()}>
+                Verbindlich anfragen
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => setConfirmOpen(false)}
+              >
+                {i18n.common.cancel}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <section className="eq-card space-y-3 p-5">
         <h2 className="font-display text-xl text-white">{i18n.teachers.message}</h2>

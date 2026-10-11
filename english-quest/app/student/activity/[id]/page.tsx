@@ -8,6 +8,12 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { Volume2, Mic, Square } from "lucide-react";
 import { t, tf } from "@/lib/i18n";
 import { callServerAI } from "@/lib/ai/server-client";
+import {
+  countFullyCorrect,
+  scoreStep,
+  totalScorePercent,
+  type StepAttempt,
+} from "@/lib/student/scoring";
 
 export default function ActivityPage() {
   const { id } = useParams<{ id: string }>();
@@ -34,13 +40,17 @@ export default function ActivityPage() {
   const [done, setDone] = useState(false);
   const [busy, setBusy] = useState(false);
   const [word, setWord] = useState("stadium");
-  const [correctCount, setCorrectCount] = useState(0);
+  const [attemptsByStep, setAttemptsByStep] = useState<
+    Record<string, StepAttempt>
+  >({});
   const [typedAnswer, setTypedAnswer] = useState("");
   const [recording, setRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [speechNote, setSpeechNote] = useState<string | null>(null);
   const mediaRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const stepHintUsed = useRef(false);
+  const stepRetried = useRef(false);
 
   const current = game?.steps[step];
   const approvedTranslation = useMemo(
@@ -89,21 +99,45 @@ export default function ActivityPage() {
     );
   }
 
+  function recordStepResult(stepId: string, gotCorrect: boolean) {
+    setAttemptsByStep((prev) => {
+      if (prev[stepId]?.firstCorrect) return prev; // einmal voll gewertet
+      const attempt: StepAttempt = {
+        stepId,
+        firstCorrect: gotCorrect,
+        usedHint: stepHintUsed.current,
+        retried: stepRetried.current,
+        attempts: (prev[stepId]?.attempts ?? 0) + 1,
+      };
+      return { ...prev, [stepId]: attempt };
+    });
+  }
+
   async function finish() {
     setBusy(true);
     setActivityStatus(game!.id, "active");
-    await completeActivity(
-      game!.id,
-      Math.round((correctCount / Math.max(1, game!.steps.length)) * 100) ||
-        (result === "ok" ? 85 : 70),
-      hints
-    );
+    const scores = game!.steps.map((s) => {
+      const att = attemptsByStep[s.id];
+      if (!att) {
+        return scoreStep({
+          stepId: s.id,
+          firstCorrect: false,
+          usedHint: false,
+          retried: false,
+          attempts: 0,
+        });
+      }
+      return scoreStep(att);
+    });
+    const percent = totalScorePercent(scores, game!.steps.length);
+    await completeActivity(game!.id, percent, hints);
     setBusy(false);
     setDone(true);
   }
 
   function checkAnswer(optionIndexOrId: string) {
     if (!current) return;
+    if (attemptsByStep[current.id]?.firstCorrect) return;
     setSelected(optionIndexOrId);
     setHintText(null);
     const correct =
@@ -112,14 +146,26 @@ export default function ActivityPage() {
     if (correct) {
       setResult("ok");
       setFeedback(i18n.activity.correct);
-      setCorrectCount((c) => c + 1);
+      recordStepResult(current.id, true);
     } else {
+      stepRetried.current = true;
       setResult("retry");
       setFeedback(i18n.activity.almost);
+      setAttemptsByStep((prev) => ({
+        ...prev,
+        [current.id]: {
+          stepId: current.id,
+          firstCorrect: false,
+          usedHint: stepHintUsed.current,
+          retried: true,
+          attempts: (prev[current.id]?.attempts ?? 0) + 1,
+        },
+      }));
     }
   }
 
   function showHint() {
+    stepHintUsed.current = true;
     const next = hints + 1;
     setHints(next);
     const soft = current?.audioHint || "Think about Past Simple forms.";
@@ -127,6 +173,18 @@ export default function ActivityPage() {
       current?.options?.[Number(current.correctId)] ||
       "Look at the verb form carefully.";
     setHintText(next === 1 ? soft : strong);
+  }
+
+  function goNextStep() {
+    stepHintUsed.current = false;
+    stepRetried.current = false;
+    setSelected(null);
+    setResult(null);
+    setFeedback(null);
+    setHintText(null);
+    setTypedAnswer("");
+    setSpeechNote(null);
+    setStep((s) => s + 1);
   }
 
   async function startRecording() {
@@ -169,13 +227,10 @@ export default function ActivityPage() {
         interests: activeStudent.interests,
       },
     });
-    setSpeechNote(
-      ai ||
-        "Nice speaking! Keep using Past Simple. (English practice feedback)"
-    );
+    setSpeechNote(ai || "Nice speaking! Keep using Past Simple.");
     setResult("ok");
     setFeedback(i18n.activity.correct);
-    setCorrectCount((c) => c + 1);
+    if (current) recordStepResult(current.id, !stepHintUsed.current);
     setBusy(false);
   }
 
@@ -183,6 +238,19 @@ export default function ActivityPage() {
     const entry = activeStudent.activityHistory.find(
       (a) => a.activityId === game.id
     );
+    const scores = game.steps.map((s) => {
+      const att = attemptsByStep[s.id];
+      return scoreStep(
+        att ?? {
+          stepId: s.id,
+          firstCorrect: false,
+          usedHint: false,
+          retried: false,
+          attempts: 0,
+        }
+      );
+    });
+    const fully = countFullyCorrect(scores);
     return (
       <div className="eq-card mx-auto max-w-lg p-8 text-center">
         <p className="text-5xl">🎉</p>
@@ -192,12 +260,12 @@ export default function ActivityPage() {
         <p className="mt-2 text-emerald-300">{i18n.activity.completeSubtitle}</p>
         <div className="mt-6 grid gap-2 text-left text-sm text-slate-300">
           <p>
-            {i18n.activity.summaryCorrect}: {correctCount}/{game.steps.length}
+            {i18n.activity.summaryCorrect}: {fully}/{game.steps.length}
           </p>
           <p>
             {i18n.activity.summaryXp}: +{entry?.xpEarned ?? game.xpReward} XP
           </p>
-          <p>Score: {entry?.score ?? "—"}%</p>
+          <p>Ergebnis: {entry?.score ?? "—"}%</p>
         </div>
         <div className="mt-6 flex justify-center gap-3">
           <Button onClick={() => router.push("/student")}>Start</Button>
@@ -365,19 +433,7 @@ export default function ActivityPage() {
               </Button>
             )}
             {step < game.steps.length - 1 ? (
-              <Button
-                disabled={result !== "ok"}
-                onClick={() => {
-                  setStep((s) => s + 1);
-                  setSelected(null);
-                  setResult(null);
-                  setFeedback(null);
-                  setHintText(null);
-                  setTypedAnswer("");
-                  setAudioUrl(null);
-                  setSpeechNote(null);
-                }}
-              >
+              <Button disabled={result !== "ok"} onClick={goNextStep}>
                 {i18n.common.next}
               </Button>
             ) : (

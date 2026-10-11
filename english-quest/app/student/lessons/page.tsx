@@ -8,14 +8,16 @@ import {
   cancelLesson,
   fetchIcalToken,
   fetchLessons,
+  fetchTeacher,
   icalUrl,
   submitReview,
 } from "@/lib/marketplace/api";
 import { formatSlotDe } from "@/lib/marketplace/availability";
-import type { LessonBooking } from "@/lib/marketplace/types";
+import type { LessonBooking, TeacherPublicProfile } from "@/lib/marketplace/types";
 import { getSubject } from "@/lib/subjects";
 import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { SEED_TEACHERS } from "@/lib/marketplace/seed";
 
 type Tab = "upcoming" | "past" | "cancelled";
 type View = "list" | "calendar";
@@ -24,6 +26,9 @@ export default function StudentLessonsPage() {
   const { activeStudentId, setupProfile } = useApp();
   const i18n = t();
   const [lessons, setLessons] = useState<LessonBooking[]>([]);
+  const [teachers, setTeachers] = useState<Record<string, TeacherPublicProfile>>(
+    {}
+  );
   const [tab, setTab] = useState<Tab>("upcoming");
   const [view, setView] = useState<View>("list");
   const [status, setStatus] = useState("");
@@ -39,11 +44,30 @@ export default function StudentLessonsPage() {
       ? Intl.DateTimeFormat().resolvedOptions().timeZone
       : "Europe/Berlin");
 
+  const teacherLabel = (id: string) => {
+    const tch = teachers[id] || SEED_TEACHERS.find((x) => x.id === id);
+    if (tch) return `${tch.firstName} ${tch.lastInitial}.`;
+    return "Lehrkraft";
+  };
+
   const load = async () => {
     setError("");
     try {
       const list = await fetchLessons({ studentId: activeStudentId });
       setLessons(list);
+      const map: Record<string, TeacherPublicProfile> = {};
+      await Promise.all(
+        [...new Set(list.map((l) => l.teacherId))].map(async (tid) => {
+          try {
+            const data = await fetchTeacher(tid);
+            map[tid] = data.teacher;
+          } catch {
+            const seed = SEED_TEACHERS.find((x) => x.id === tid);
+            if (seed) map[tid] = seed;
+          }
+        })
+      );
+      setTeachers(map);
     } catch (e) {
       setError(e instanceof Error ? e.message : i18n.common.error);
     }
@@ -218,7 +242,13 @@ export default function StudentLessonsPage() {
                     {formatSlotDe(l.startsAt, tz)} · {l.durationMinutes} Min.
                   </p>
                   <p className="text-xs text-slate-500">
-                    Lehrkraft: {l.teacherId.replace("seed-teacher-", "")}
+                    Lehrkraft:{" "}
+                    <Link
+                      href={`/student/teachers/${l.teacherId}/`}
+                      className="text-indigo-300 underline"
+                    >
+                      {teacherLabel(l.teacherId)}
+                    </Link>
                   </p>
                   {l.topic && (
                     <p className="text-sm text-slate-400">
