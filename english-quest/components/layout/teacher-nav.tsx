@@ -25,6 +25,7 @@ const links = [
   { href: "/teacher", label: "Dashboard", icon: LayoutDashboard },
   { href: "/teacher/students", label: "Schüler", icon: Users },
   { href: "/teacher/lessons", label: "Stunden", icon: BookOpen },
+  { href: "/teacher/marketplace", label: "Marktplatz", icon: Users },
   { href: "/teacher/worksheets", label: "Arbeitsblätter", icon: FileText },
   { href: "/teacher/games", label: "Spiele", icon: Gamepad2 },
   { href: "/teacher/ai/teacher", label: "KI-Assistent", icon: Sparkles },
