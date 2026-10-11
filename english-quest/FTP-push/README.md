@@ -1,16 +1,21 @@
 # FTP-Push
 
-## Aktueller Stand — Schülerbereich-Audit
+## Aktueller Stand — Auftrag 2 (Fächer / Lehrkräfte / Stunden)
 
-Full Deploy inkl.:
+Hochladen ins Document Root (`public_html/`):
 
-- Persistenz `api/student.php` (XP, Log, Interests, Credits)
-- `/impressum`, `/datenschutz`, `robots.txt`, echte `404.html`
-- Onboarding, Games-Katalog, Activity-Fixes
-- Google-Login Timeout/Hinweise
+- `_next/` — neue Bundles
+- `student/` — inkl. `teachers/`, `lessons/`, aktualisierte Fachauswahl/Onboarding
+- `teacher/` — inkl. `marketplace/`
+- `api/marketplace.php` — Lehrkräfte, Buchungen, Chat, iCal (+ Seed beim ersten Aufruf)
+- `api/.htaccess`, `api/data/.htaccess`, `api/config.example.php`
 
-Nach Upload:
+Nicht hochladen: `api/config.php` mit Keys (bleibt auf dem Server).
 
-1. `api/config.php` Keys (Mistral, Daily, **google_client_id**)
-2. Google Cloud Origins: `https://devlearn.klarland.net`
-3. Statusliste: `docs/STUDENT-AREA-AUDIT-STATUS.md`
+Nach Upload prüfen:
+
+1. Schüler → Start-Ansicht (neues Konto) / Fachauswahl
+2. `/student/teachers/` — Seed-Lehrkräfte
+3. Buchung → `/student/lessons/`
+4. Lehrer → `/teacher/marketplace/`
+5. Status: `docs/AUFTRAG-2-STATUS.md`
