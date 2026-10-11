@@ -1,0 +1,14 @@
+---
+description: Qestra Produktprioritäten und Plan-Markierungen
+alwaysApply: true
+---
+
+# Qestra
+
+- Markenname fest: **Qestra** (nicht „English Quest“).
+- Text zwischen `**…**` in User-Plänen = **zweitrangig**. Explizite Aussagen außerhalb haben Vorrang.
+- Plattform-Spezifikation: `docs/QESTRA-PLATTFORM.md` — als AI-Prompt nutzbar.
+- Phase 1: Fach Englisch; Architektur fachübergreifend (`lib/subjects`).
+- **Eine KI** (Qestra KI / Mistral) — keine separaten AI1/AI2/AI3 in UI oder Produkt.
+- Grundprinzipien: kein Zwang, kein Fortschrittsverlust, Lehrer-Kontrolle in Live-Lessons.
+- Nach deploybaren Änderungen: `FTP-push/` aktualisieren (siehe Regel ftp-push).

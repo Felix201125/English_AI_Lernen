@@ -1,0 +1,14 @@
+# Deny listing and protect secrets / runtime state
+Options -Indexes
+
+<Files "config.php">
+  Require all denied
+</Files>
+<Files "config.example.php">
+  Require all denied
+</Files>
+
+# Allow PHP endpoints
+<FilesMatch "\.(php)$">
+  Require all granted
+</FilesMatch>

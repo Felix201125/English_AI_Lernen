@@ -1,0 +1,34 @@
+---
+description: Nach Entwicklung FTP-push mit nur neuen/geänderten Upload-Dateien füllen, Veraltetes löschen
+alwaysApply: true
+---
+
+# FTP-Push Staging
+
+Nach jeder **abgeschlossenen, deploybaren** Änderung (Hetzner/Webhosting) den Ordner `FTP-push/` aktualisieren.
+
+## Ablauf (immer)
+
+1. **Leeren:** Alles in `FTP-push/` löschen außer `README.md` und `.gitignore`.
+2. **Bauen** falls Frontend betroffen: `npm run build:hetzner` → Quelle `dist-hetzner/`.
+3. **Nur Neu/Geändert** hinein kopieren — Pfade wie auf dem Server (`public_html/`):
+   - Frontend-Änderungen → passende Dateien/Ordner aus `dist-hetzner/`
+   - Nur PHP-API → aus `php-api/` nach `FTP-push/api/` (`ai.php`, `daily.php`, `.htaccess`, `data/.htaccess`, ggf. `config.example.php`)
+4. **Nicht neu** = nicht in diesen Upload → nicht in `FTP-push/` lassen (Schritt 1).
+5. Kurz in `FTP-push/README.md` unter „Aktueller Stand“ notieren, was hochgeladen werden soll.
+
+## Nie in FTP-push
+
+- `api/config.php` mit echten Keys (Keys nur einmalig manuell auf dem Server)
+- `node_modules`, `.next`, Quellcode der nur lokal läuft
+- Secrets, `.env`
+
+## Wann überspringen
+
+- Reine Docs/Rules ohne Server-Wirkung
+- Ask-Mode / keine Dateiänderungen
+- Explizit „nicht deployen“
+
+## Hinweis an den User
+
+Nach dem Befüllen: Inhalt von `FTP-push/` per FTP ins Document Root legen (gleiche relative Pfade).
