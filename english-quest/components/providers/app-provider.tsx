@@ -80,8 +80,10 @@ import {
   saveRemoteBundle,
   type SubjectProgressSlice,
 } from "@/lib/student/persist";
+import { saveTeacherLesson } from "@/lib/teacher/persist";
 import { loadSession } from "@/lib/auth/session";
 import type { StudentSetupProfile } from "@/lib/marketplace/types";
+import { clampHistoricScore } from "@/lib/student/scoring";
 import type {
   ActivityLogEntry,
   ActivityStatus,
@@ -152,6 +154,10 @@ type AppContextValue = {
   startDailyMeeting: (studentId?: string) => Promise<void>;
   endDailyMeeting: () => void;
   cyclePerm: (studentId: string, key: keyof LessonPermissions) => void;
+  setStudentPermissions: (
+    studentId: string,
+    perms: LessonPermissions
+  ) => void;
   requestTranslation: (word: string) => Promise<void>;
   decideTranslation: (id: string, approve: boolean) => void;
   submitStudentRequest: (text: string, kind?: "text" | "voice") => Promise<StudentMessage>;
@@ -165,6 +171,7 @@ type AppContextValue = {
     duration: number;
     instruction?: string;
   }) => Promise<void>;
+  loadLessonDraft: (draft: LessonDraft) => void;
   fillGameTemplate: (templateId: GameTemplateId, topic: string) => Promise<string>;
   updateLessonActivity: (
     activityId: string,
@@ -323,10 +330,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const local = loadLocalBundle(sid);
       const bundle = remote ?? local;
       if (bundle?.learningState) {
+        const history = (bundle.learningState.activityHistory ?? []).map(
+          (a) => ({
+            ...a,
+            score:
+              a.score != null ? clampHistoricScore(a.score) : a.score,
+          })
+        );
         setLearningStates((prev) => ({
           ...prev,
           [sid]: {
             ...bundle.learningState,
+            activityHistory: history,
             name: user.name || bundle.learningState.name,
           },
         }));
@@ -583,7 +598,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setMeetingBusy(true);
     setMeetingError(null);
     try {
-      const room = await createDailyMeeting(sid);
+      const room = await createDailyMeeting(sid, {
+        displayName: authUser?.name ?? "Lehrkraft",
+        role: "teacher",
+      });
       setLive((l) => ({
         ...l,
         active: true,
@@ -651,6 +669,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       window.clearInterval(id);
     };
   }, [activeStudentId]);
+
+  const setStudentPermissions = (
+    studentId: string,
+    perms: LessonPermissions
+  ) => {
+    setPermissions((prev) => ({ ...prev, [studentId]: perms }));
+  };
 
   const cyclePerm = (studentId: string, key: keyof LessonPermissions) => {
     setPermissions((prev) => {
@@ -1116,11 +1141,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
       instruction: input.instruction,
     });
     setLessonDraft(draft);
+    const teacherKey =
+      authUser?.marketplaceTeacherId ||
+      (authUser?.id ? `teacher-${authUser.id}` : "teacher-local");
+    void saveTeacherLesson(teacherKey, draft);
     pushLog({
       studentId: input.studentId,
       category: "Qestra KI",
-      message: `Lesson draft created: ${draft.title}`,
+      message: `Stundenentwurf erstellt: ${draft.title}`,
     });
+  };
+
+  const loadLessonDraft = (draft: LessonDraft) => {
+    setLessonDraft(draft);
   };
 
   const fillGameTemplate = async (templateId: GameTemplateId, topic: string) => {
@@ -1164,13 +1197,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const sorted = [...d.activities].sort((a, b) => a.order - b.order);
       const idx = sorted.findIndex((a) => a.id === activityId);
       const swapWith = direction === "up" ? idx - 1 : idx + 1;
-      if (swapWith < 0 || swapWith >= sorted.length) return d;
-      const a = sorted[idx];
-      const b = sorted[swapWith];
-      const orderA = a.order;
-      sorted[idx] = { ...a, order: b.order };
-      sorted[swapWith] = { ...b, order: orderA };
-      return { ...d, activities: sorted };
+      if (idx < 0 || swapWith < 0 || swapWith >= sorted.length) return d;
+      const next = [...sorted];
+      const tmp = next[idx];
+      next[idx] = next[swapWith];
+      next[swapWith] = tmp;
+      return {
+        ...d,
+        activities: next.map((a, i) => ({ ...a, order: i + 1 })),
+        updatedAt: new Date().toISOString(),
+      };
     });
   };
 
@@ -1316,6 +1352,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       startDailyMeeting,
       endDailyMeeting,
       cyclePerm,
+      setStudentPermissions,
       requestTranslation,
       decideTranslation,
       submitStudentRequest,
@@ -1324,6 +1361,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setActivityStatus,
       completeActivity,
       generateLesson,
+      loadLessonDraft,
       fillGameTemplate,
       updateLessonActivity,
       reorderLessonActivity,

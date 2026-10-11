@@ -223,6 +223,21 @@ export type AIComparison = {
   requiresTeacherApproval: boolean;
 };
 
+export type LessonActivityContent = {
+  id: string;
+  order: number;
+  title: string;
+  durationMinutes: number;
+  status: ActivityStatus;
+  /** Aufklappbarer Inhalt */
+  instructions?: string;
+  tasks?: string[];
+  solutions?: string[];
+  materials?: string[];
+  teacherTips?: string[];
+  levelNote?: string;
+};
+
 export type LessonDraft = {
   id: string;
   studentId: string;
@@ -230,16 +245,16 @@ export type LessonDraft = {
   durationMinutes: number;
   level: string;
   status: ActivityStatus;
+  /** Begründung aus Schülerprofil */
   studentAiNote: string;
+  /** Echtes Unterrichtsziel */
   teacherAiNote: string;
+  /** Kurze Begründung / Methodik */
   mainAiNote: string;
-  activities: {
-    id: string;
-    order: number;
-    title: string;
-    durationMinutes: number;
-    status: ActivityStatus;
-  }[];
+  activities: LessonActivityContent[];
+  createdAt?: string;
+  updatedAt?: string;
+  archived?: boolean;
 };
 
 export type LiveLessonState = {

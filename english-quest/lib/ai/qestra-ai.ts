@@ -115,43 +115,8 @@ export const qestraAI = {
     duration: number;
     instruction?: string;
   }): Promise<LessonDraft> {
-    await delay(600);
-    const topic = input.state.interests[0] ?? subjectLabel(input.state);
-    const note = input.instruction ?? `Ziel: ${input.goal}`;
-    return {
-      id: `lesson-${Date.now()}`,
-      studentId: input.state.studentId,
-      title: `${topic}: ${input.goal}`,
-      durationMinutes: input.duration,
-      level: input.state.cefrLevel,
-      status: "draft",
-      studentAiNote: note,
-      teacherAiNote: `Lehrer steuert Freigabe. Fach: ${subjectLabel(input.state)}.`,
-      mainAiNote: "Eine Qestra-KI — kein Zwang, kein Fortschrittsverlust.",
-      activities: [
-        {
-          id: "a1",
-          order: 1,
-          title: "Warm-up",
-          durationMinutes: Math.max(3, Math.floor(input.duration * 0.2)),
-          status: "draft",
-        },
-        {
-          id: "a2",
-          order: 2,
-          title: "Hauptquest",
-          durationMinutes: Math.max(5, Math.floor(input.duration * 0.5)),
-          status: "draft",
-        },
-        {
-          id: "a3",
-          order: 3,
-          title: "Reflexion",
-          durationMinutes: Math.max(2, Math.floor(input.duration * 0.2)),
-          status: "draft",
-        },
-      ],
-    };
+    const { buildLessonDraft } = await import("@/lib/lessons/build-lesson");
+    return buildLessonDraft(input);
   },
 
   async updateLearningState(
