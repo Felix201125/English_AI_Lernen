@@ -1,5 +1,12 @@
 import type { CreditAccount } from "@/lib/credits";
+import type { StudentSetupProfile } from "@/lib/marketplace/types";
 import type { Game, LearningState } from "@/lib/types";
+
+export type SubjectProgressSlice = {
+  xp: number;
+  levelLabel: string;
+  goals: string[];
+};
 
 export type StudentPersistBundle = {
   studentId: string;
@@ -10,6 +17,9 @@ export type StudentPersistBundle = {
   gameProgress: Record<string, { step: number; status: string }>;
   onboardingDone: boolean;
   helpRequest?: { id: string; status: "open" | "accepted"; at: string } | null;
+  setupProfile?: StudentSetupProfile | null;
+  /** XP/Niveau pro Fach (zusätzlich zum aktiven LearningState) */
+  progressBySubject?: Record<string, SubjectProgressSlice>;
 };
 
 const keyFor = (studentId: string) => `qestra.student.${studentId}`;

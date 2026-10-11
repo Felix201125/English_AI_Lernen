@@ -26,6 +26,7 @@ export default function StudentAIPage() {
     settings,
     messages,
     games,
+    setupProfile,
   } = useApp();
   const i18n = t();
   const [text, setText] = useState("");
@@ -109,7 +110,11 @@ export default function StudentAIPage() {
       </div>
       <p className="text-xs text-slate-500">{i18n.ai.howCredits}</p>
 
-      <SubjectSwitcher value={activeSubjectId} onChange={setActiveSubjectId} />
+      <SubjectSwitcher
+        value={activeSubjectId}
+        onChange={setActiveSubjectId}
+        mySubjectIds={setupProfile?.subjectIds}
+      />
 
       <div className="eq-card space-y-4 p-5">
         <p className="text-sm text-slate-400">

@@ -78,8 +78,10 @@ import {
   fetchRemoteBundle,
   loadLocalBundle,
   saveRemoteBundle,
+  type SubjectProgressSlice,
 } from "@/lib/student/persist";
 import { loadSession } from "@/lib/auth/session";
+import type { StudentSetupProfile } from "@/lib/marketplace/types";
 import type {
   ActivityLogEntry,
   ActivityStatus,
@@ -183,7 +185,11 @@ type AppContextValue = {
     interests: string[];
     cefrLevel: string;
     age: number;
+    setupProfile?: StudentSetupProfile;
   }) => void;
+  setupProfile: StudentSetupProfile | null;
+  updateSetupProfile: (patch: Partial<StudentSetupProfile>) => void;
+  progressBySubject: Record<string, SubjectProgressSlice>;
   helpRequest: { id: string; status: "open" | "accepted"; at: string } | null;
   requestLiveHelp: () => void;
   persistReady: boolean;
@@ -205,6 +211,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [learningStates, setLearningStates] = useState(seedStates);
   const [games, setGames] = useState(() => getStudentGameCatalog());
   const [onboardingDone, setOnboardingDone] = useState(true);
+  const [setupProfile, setSetupProfile] = useState<StudentSetupProfile | null>(
+    null
+  );
+  const [progressBySubject, setProgressBySubject] = useState<
+    Record<string, SubjectProgressSlice>
+  >({});
   const [helpRequest, setHelpRequest] = useState<{
     id: string;
     status: "open" | "accepted";
@@ -264,6 +276,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .filter((a) => a.status === "completed")
         .map((a) => a.activityId);
       const token = loadSession()?.token;
+      const subjectKey = state.subjectId || activeSubjectId;
+      const nextProgress = {
+        ...progressBySubject,
+        [subjectKey]: {
+          xp: state.xp,
+          levelLabel: state.cefrLevel,
+          goals: state.goals,
+        },
+      };
       await saveRemoteBundle(
         {
           studentId: sid,
@@ -273,11 +294,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
           gameProgress: {},
           onboardingDone,
           helpRequest,
+          setupProfile,
+          progressBySubject: nextProgress,
         },
         token
       );
+      setProgressBySubject(nextProgress);
     },
-    [onboardingDone, helpRequest]
+    [
+      onboardingDone,
+      helpRequest,
+      setupProfile,
+      progressBySubject,
+      activeSubjectId,
+    ]
   );
 
   const ensureStudentProfile = useCallback((user: AuthUser) => {
@@ -302,6 +332,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }));
         if (bundle.credits) setStudentCredits(bundle.credits);
         setOnboardingDone(Boolean(bundle.onboardingDone));
+        setSetupProfile(bundle.setupProfile ?? null);
+        setProgressBySubject(bundle.progressBySubject ?? {});
+        if (bundle.learningState.subjectId) {
+          setActiveSubjectIdState(bundle.learningState.subjectId);
+        }
         setHelpRequest(bundle.helpRequest ?? null);
         setGames((prev) =>
           prev.map((g) =>
@@ -321,6 +356,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
           return { ...prev, [sid]: createStudentLearningState(sid, user.name) };
         });
         setOnboardingDone(false);
+        setSetupProfile(null);
+        setProgressBySubject({});
         setStudentCredits(createCreditAccount("student"));
       }
       setPersistReady(true);
@@ -445,24 +482,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const setActiveSubjectId = (id: SubjectId) => {
     const sub = getSubject(id);
-    if (sub.status === "planned") {
+    if (sub.status === "preparing") {
       pushLog({
         category: "Warnings",
-        message: `${sub.labelDe} ist noch nicht verfügbar.`,
+        message: `${sub.labelDe} ist in Vorbereitung — Inhalte folgen. Live-Buchung über Lehrkräfte möglich.`,
       });
       return;
     }
     setActiveSubjectIdState(id);
     setLearningStates((prev) => {
-      const next = { ...prev };
-      for (const sid of Object.keys(next)) {
-        next[sid] = {
-          ...next[sid],
-          subjectId: id,
-          lastUpdated: new Date().toISOString(),
-        };
-      }
-      return next;
+      const current = prev[activeStudentId];
+      if (!current) return prev;
+      const slice = progressBySubject[id];
+      const nextState: LearningState = {
+        ...current,
+        subjectId: id,
+        xp: slice?.xp ?? (id === current.subjectId ? current.xp : 0),
+        cefrLevel:
+          slice?.levelLabel ??
+          setupProfile?.levelsBySubject?.[id] ??
+          current.cefrLevel,
+        goals: slice?.goals ?? current.goals,
+        lastUpdated: new Date().toISOString(),
+      };
+      return { ...prev, [activeStudentId]: nextState };
     });
     pushLog({
       category: "Learning State",
@@ -953,7 +996,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     interests: string[];
     cefrLevel: string;
     age: number;
+    setupProfile?: StudentSetupProfile;
   }) => {
+    if (input.setupProfile) {
+      setSetupProfile(input.setupProfile);
+      const prog: Record<string, SubjectProgressSlice> = {};
+      for (const sid of input.setupProfile.subjectIds) {
+        prog[sid] = {
+          xp: 0,
+          levelLabel: input.setupProfile.levelsBySubject[sid] ?? input.cefrLevel,
+          goals: (input.setupProfile.goalsBySubject[sid] ?? []) as string[],
+        };
+      }
+      setProgressBySubject(prog);
+    }
     setLearningStates((prev) => {
       const s = prev[activeStudentId] ?? createStudentLearningState(
         activeStudentId,
@@ -961,12 +1017,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       );
       const ageGroup =
         input.age < 13 ? "child" : input.age < 18 ? "teenager" : "adult";
+      const primarySubject =
+        input.setupProfile?.subjectIds[0] ?? s.subjectId ?? DEFAULT_SUBJECT_ID;
       const next: LearningState = {
         ...s,
+        subjectId: primarySubject,
         interests: input.interests,
         cefrLevel: input.cefrLevel,
         age: input.age,
         ageGroup,
+        goals: (input.setupProfile?.goalsBySubject[primarySubject] ??
+          s.goals) as string[],
         recommendedDifficulty: input.cefrLevel,
         currentFocus: input.interests.slice(0, 1).length
           ? [`${input.interests[0]} vocabulary`]
@@ -974,7 +1035,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         currentRecommendation: {
           id: `rec-onboard-${Date.now()}`,
           title: "Vocabulary Match",
-          description: "Starte mit einem kurzen Vokabel-Spiel auf A2.",
+          description: "Starte mit einem kurzen Vokabel-Spiel.",
           level: input.cefrLevel,
           durationMinutes: 8,
           skill: "Vocabulary",
@@ -991,6 +1052,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return { ...prev, [activeStudentId]: next };
     });
     setOnboardingDone(true);
+  };
+
+  const updateSetupProfile = (patch: Partial<StudentSetupProfile>) => {
+    setSetupProfile((prev) => {
+      const base: StudentSetupProfile = prev ?? {
+        subjectIds: [activeSubjectId],
+        gradeLevel: 7,
+        schoolType: "gymnasium",
+        federalState: "Bayern",
+        goalsBySubject: {},
+        levelsBySubject: {},
+        interests: activeStudent.interests,
+        learningMode: "both",
+        preferredWeekdays: [],
+        preferredDayParts: [],
+        timezone: "Europe/Berlin",
+      };
+      const next = { ...base, ...patch };
+      return next;
+    });
   };
 
   const requestLiveHelp = () => {
@@ -1254,6 +1335,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       can,
       onboardingDone,
       completeOnboarding,
+      setupProfile,
+      updateSetupProfile,
+      progressBySubject,
       helpRequest,
       requestLiveHelp,
       persistReady,
@@ -1277,6 +1361,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       activeSubjectId,
       studentCredits,
       onboardingDone,
+      setupProfile,
+      progressBySubject,
       helpRequest,
       persistReady,
       learningStates,

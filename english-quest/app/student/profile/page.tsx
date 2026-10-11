@@ -20,7 +20,8 @@ const skillLabels: Record<string, string> = {
 };
 
 export default function StudentProfilePage() {
-  const { activeStudent, authUser } = useApp();
+  const { activeStudent, authUser, setupProfile, updateSetupProfile } =
+    useApp();
   const i18n = t();
   const ageInfo = ageGroupDe(activeStudent.age);
   const hasSkills = Object.values(activeStudent.skills).some((v) => v > 0);
@@ -45,6 +46,34 @@ export default function StudentProfilePage() {
           <Button variant="secondary">{i18n.profile.manageAccount}</Button>
         </Link>
       </div>
+
+      {setupProfile && (
+        <div className="eq-card space-y-2 p-5 text-sm text-slate-300">
+          <h2 className="font-display text-xl text-white">Start-Einstellungen</h2>
+          <p>
+            Klasse {setupProfile.gradeLevel} · {setupProfile.schoolType} ·{" "}
+            {setupProfile.federalState}
+          </p>
+          <p>
+            Fächer: {setupProfile.subjectIds.join(", ")} · Modus:{" "}
+            {setupProfile.learningMode}
+          </p>
+          <p className="text-xs text-slate-500">
+            Zeiten: {setupProfile.preferredWeekdays.join(", ")} /{" "}
+            {setupProfile.preferredDayParts.join(", ")}
+          </p>
+          <Button
+            variant="secondary"
+            onClick={() =>
+              updateSetupProfile({
+                preferredDayParts: ["afternoon", "evening"],
+              })
+            }
+          >
+            Zeiten auf Nachmittag+Abend setzen
+          </Button>
+        </div>
+      )}
 
       <div className="eq-card grid gap-4 p-5 sm:grid-cols-2">
         <div>

@@ -31,6 +31,7 @@ export default function StudentHomePage() {
     submitStudentRequest,
     recordVoiceRequest,
     messages,
+    setupProfile,
   } = useApp();
   const i18n = t();
   const [prompt, setPrompt] = useState("");
@@ -115,6 +116,7 @@ export default function StudentHomePage() {
             <SubjectSwitcher
               value={activeSubjectId}
               onChange={setActiveSubjectId}
+              mySubjectIds={setupProfile?.subjectIds}
             />
           </div>
         </div>

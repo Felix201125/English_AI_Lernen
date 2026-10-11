@@ -4,14 +4,27 @@ import Link from "next/link";
 import { useApp } from "@/components/providers/app-provider";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
+import { SubjectSwitcher } from "@/components/subject-switcher";
+import { getSubject } from "@/lib/subjects";
 import { t, tf } from "@/lib/i18n";
 
 export default function StudentGamesPage() {
-  const { games, activeStudentId, isLive, can, activeStudent } = useApp();
+  const {
+    games,
+    activeStudentId,
+    isLive,
+    can,
+    activeStudent,
+    activeSubjectId,
+    setActiveSubjectId,
+    setupProfile,
+  } = useApp();
   const i18n = t();
-  const mine = games.filter(
-    (g) => !g.studentId || g.studentId === activeStudentId
-  );
+  const subject = getSubject(activeSubjectId);
+  const contentReady = subject.status === "active";
+  const mine = contentReady
+    ? games.filter((g) => !g.studentId || g.studentId === activeStudentId)
+    : [];
 
   return (
     <div className="space-y-6">
@@ -19,8 +32,23 @@ export default function StudentGamesPage() {
         {i18n.games.title}
       </h1>
       <p className="text-slate-300">{i18n.games.subtitle}</p>
+      <SubjectSwitcher
+        value={activeSubjectId}
+        onChange={setActiveSubjectId}
+        mySubjectIds={setupProfile?.subjectIds}
+      />
 
-      {mine.length === 0 ? (
+      {!contentReady ? (
+        <div className="eq-card space-y-3 p-8 text-center text-slate-400">
+          <p>
+            {subject.labelDe}: {i18n.subject.preparing}. Spiele folgen — du
+            kannst schon eine Lehrkraft für Live-Stunden buchen.
+          </p>
+          <Link href="/student/teachers/" className="inline-block">
+            <Button>{i18n.nav.teachers}</Button>
+          </Link>
+        </div>
+      ) : mine.length === 0 ? (
         <div className="eq-card p-8 text-center text-slate-400">
           <p>{i18n.games.empty}</p>
           <Link href="/student/interests" className="mt-4 inline-block">
