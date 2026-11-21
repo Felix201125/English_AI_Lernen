@@ -85,6 +85,28 @@ Keine Google-Meet-Links nötig.
 Lehrer → **KI-Assistent** → Frage stellen.  
 Mit gültigem Mistral-Key kommt eine echte Antwort.
 
+## 8. Legal / Preise / Indexierung (Auftrag 6)
+
+Pflicht für **Produktions-Build** (`QESTRA_PRODUCTION_BUILD=1 npm run build:hetzner`):
+
+```bash
+NEXT_PUBLIC_LEGAL_OPERATOR_NAME=
+NEXT_PUBLIC_LEGAL_STREET=
+NEXT_PUBLIC_LEGAL_ZIP_CITY=
+NEXT_PUBLIC_LEGAL_EMAIL=
+NEXT_PUBLIC_LEGAL_RESPONSIBLE=
+NEXT_PUBLIC_SITE_URL=https://deine-produktions-domain.de
+NEXT_PUBLIC_FORCE_NOINDEX=0
+NEXT_PUBLIC_PRICING_MODE=free_launch   # oder priced | hidden
+# optional bei priced:
+# NEXT_PUBLIC_PRICE_LESSON_HINT=
+# NEXT_PUBLIC_PRICE_CREDITS_HINT=
+```
+
+Staging (`devlearn.klarland.net`): `NEXT_PUBLIC_FORCE_NOINDEX=1` (Default in `build:hetzner`) → `robots.txt` Disallow + Meta noindex.
+
+Ohne Google: `google_client_id` leer lassen — der Button erscheint nicht.
+
 ## Sicherheit
 
 - Keys nur in `api/config.php`

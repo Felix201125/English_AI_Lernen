@@ -1,18 +1,32 @@
 import Link from "next/link";
 import { BRAND } from "@/lib/brand";
 
+const LINKS: { href: string; label: string }[] = [
+  { href: "/ausprobieren/", label: "Ausprobieren" },
+  { href: "/eltern/", label: "Für Eltern" },
+  { href: "/lehrkraefte/", label: "Für Lehrkräfte" },
+  { href: "/schulen/", label: "Für Schulen" },
+  { href: "/faecher/", label: "Fächer" },
+  { href: "/preise/", label: "Preise" },
+  { href: "/tutoren/", label: "Lehrkräfte finden" },
+  { href: "/faq/", label: "FAQ" },
+  { href: "/ratgeber/", label: "Ratgeber" },
+  { href: "/kontakt/", label: "Kontakt" },
+  { href: "/impressum/", label: "Impressum" },
+  { href: "/datenschutz/", label: "Datenschutz" },
+];
+
 export function SiteFooter({ className = "" }: { className?: string }) {
   return (
     <footer
       className={`flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 ${className}`}
     >
-      <span>{BRAND.name}</span>
-      <Link href="/impressum" className="hover:text-slate-300">
-        Impressum
-      </Link>
-      <Link href="/datenschutz" className="hover:text-slate-300">
-        Datenschutz
-      </Link>
+      <span className="font-medium text-slate-400">{BRAND.name}</span>
+      {LINKS.map((l) => (
+        <Link key={l.href} href={l.href} className="hover:text-slate-300">
+          {l.label}
+        </Link>
+      ))}
     </footer>
   );
 }

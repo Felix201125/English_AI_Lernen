@@ -182,10 +182,11 @@ try {
 
         $clientId = (string)($config['google_client_id'] ?? '');
         if ($clientId === '' || str_contains($clientId, 'HIER_')) {
-            http_response_code(500);
+            error_log('Qestra: Google Sign-In nicht konfiguriert');
+            http_response_code(503);
             echo json_encode([
                 'ok' => false,
-                'error' => 'google_client_id fehlt in api/config.php.',
+                'error' => 'Anmeldung mit Google ist derzeit nicht verfügbar.',
             ]);
             exit;
         }

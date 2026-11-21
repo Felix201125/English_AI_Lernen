@@ -70,14 +70,14 @@ export function missingLegalKeys(): string[] {
 
 export function getSiteConfig(): SiteConfig {
   const siteUrl = env("NEXT_PUBLIC_SITE_URL").replace(/\/$/, "");
-  const host =
-    typeof window !== "undefined"
-      ? window.location.hostname
-      : env("VERCEL_URL") || "";
-  const isDevHost =
-    host.includes("devlearn.klarland.net") ||
-    host.includes("localhost") ||
-    env("NEXT_PUBLIC_FORCE_NOINDEX") === "1";
+  const forceNoIndex = env("NEXT_PUBLIC_FORCE_NOINDEX") === "1";
+  const siteLooksDev =
+    /devlearn\.klarland\.net/i.test(siteUrl) ||
+    /localhost/i.test(siteUrl) ||
+    siteUrl === "";
+
+  // Static Export: kein window — Host aus SITE_URL / FORCE_NOINDEX
+  const isDevHost = forceNoIndex || siteLooksDev;
 
   const modeRaw = env("NEXT_PUBLIC_PRICING_MODE") || "free_launch";
   const pricingMode =
@@ -96,5 +96,11 @@ export function getSiteConfig(): SiteConfig {
 }
 
 export function shouldNoIndex(): boolean {
-  return getSiteConfig().isDevHost || !getSiteConfig().siteUrl;
+  const site = getSiteConfig();
+  return site.isDevHost || !site.siteUrl;
+}
+
+/** Für robots.txt / Canonical — Produktions-Origin falls gesetzt */
+export function getCanonicalOrigin(): string {
+  return getSiteConfig().siteUrl;
 }

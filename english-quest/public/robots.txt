@@ -1,2 +1,4 @@
 User-agent: *
 Disallow: /
+
+# Dev-/Staging-Host: nicht indexieren

@@ -17,10 +17,10 @@ export function AuthShell({
     <main className="relative flex min-h-screen items-center justify-center px-4 py-10">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
-          <Link href="/" className="font-display text-3xl font-bold text-white">
+          <Link href="/" className="font-display text-2xl font-bold text-white">
             {BRAND.name}
           </Link>
-          <p className="mt-2 text-slate-400">{title}</p>
+          <h1 className="mt-2 font-display text-xl text-slate-200">{title}</h1>
         </div>
         {children}
         {footer}

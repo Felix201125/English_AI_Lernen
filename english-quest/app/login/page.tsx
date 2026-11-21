@@ -4,7 +4,7 @@ import { FormEvent, Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthShell, authInputClass } from "@/components/auth/auth-shell";
-import { GoogleButton } from "@/components/auth/google-button";
+import { GoogleAuthSection } from "@/components/auth/google-auth-section";
 import { useApp } from "@/components/providers/app-provider";
 import { Button } from "@/components/ui/button";
 
@@ -115,11 +115,7 @@ function LoginForm() {
             </a>
           </p>
 
-          <div className="relative py-2 text-center text-xs text-slate-500">
-            <span className="bg-transparent px-2">oder</span>
-          </div>
-
-        <GoogleButton
+        <GoogleAuthSection
           role="student"
           onError={setError}
           onCredential={async (idToken) => {

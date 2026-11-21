@@ -139,7 +139,7 @@ export const de = {
   legal: {
     impressumTitle: "Impressum",
     privacyTitle: "Datenschutz",
-    placeholder: "[Platzhalter — Inhalt vom Betreiber ergänzen]",
+    pending: "Angaben folgen",
   },
 } as const;
 

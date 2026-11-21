@@ -27,13 +27,16 @@ type Props = {
   label?: string;
 };
 
+/**
+ * Google Sign-In. Ohne Client-ID: nichts rendern (kein hängendes „wird geladen…“).
+ */
 export function GoogleButton({ role, onCredential, onError, label }: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
   const onCredentialRef = useRef(onCredential);
   const onErrorRef = useRef(onError);
-  const [ready, setReady] = useState(false);
-  const [missing, setMissing] = useState(false);
-  const [hint, setHint] = useState<string | null>(null);
+  const [status, setStatus] = useState<
+    "checking" | "ready" | "unavailable" | "hidden"
+  >("checking");
 
   onCredentialRef.current = onCredential;
   onErrorRef.current = onError;
@@ -41,12 +44,12 @@ export function GoogleButton({ role, onCredential, onError, label }: Props) {
   useEffect(() => {
     let cancelled = false;
     let didReady = false;
+
     const timeout = window.setTimeout(() => {
       if (!cancelled && !didReady) {
-        setMissing(true);
-        setHint(
-          "Google antwortet nicht. Bitte mit E-Mail anmelden oder google_client_id / Origins prüfen (devlearn.klarland.net)."
-        );
+        // Nach Timeout still ausblenden — keine Env-/Config-Hinweise öffentlich
+        setStatus("hidden");
+        console.warn("[qestra] Google Sign-In timed out");
       }
     }, 8000);
 
@@ -54,10 +57,7 @@ export function GoogleButton({ role, onCredential, onError, label }: Props) {
       const clientId = await fetchGoogleClientId();
       if (cancelled) return;
       if (!clientId) {
-        setMissing(true);
-        setHint(
-          "Google-Login ist noch nicht eingerichtet. Nutze E-Mail/Passwort oder trage google_client_id in api/config.php ein und erlaube den Origin https://devlearn.klarland.net in der Google Cloud Console."
-        );
+        setStatus("hidden");
         return;
       }
 
@@ -74,7 +74,7 @@ export function GoogleButton({ role, onCredential, onError, label }: Props) {
             existing.addEventListener("load", () => resolve(), { once: true });
             existing.addEventListener(
               "error",
-              () => reject(new Error("Google-Skript fehlgeschlagen")),
+              () => reject(new Error("gis-load-failed")),
               { once: true }
             );
             return;
@@ -85,16 +85,14 @@ export function GoogleButton({ role, onCredential, onError, label }: Props) {
           script.defer = true;
           script.dataset.googleGis = "1";
           script.onload = () => resolve();
-          script.onerror = () =>
-            reject(new Error("Google-Skript fehlgeschlagen"));
+          script.onerror = () => reject(new Error("gis-load-failed"));
           document.head.appendChild(script);
         });
 
       try {
         await ensureScript();
         if (cancelled || !hostRef.current || !window.google?.accounts?.id) {
-          setMissing(true);
-          setHint("Google konnte nicht geladen werden. Bitte E-Mail nutzen.");
+          setStatus("hidden");
           return;
         }
 
@@ -102,16 +100,17 @@ export function GoogleButton({ role, onCredential, onError, label }: Props) {
           client_id: clientId,
           callback: async (response: { credential?: string }) => {
             if (!response.credential) {
-              onErrorRef.current("Google hat kein Token geliefert.");
+              onErrorRef.current(
+                "Anmeldung mit Google ist fehlgeschlagen. Bitte E-Mail nutzen."
+              );
               return;
             }
             try {
               await onCredentialRef.current(response.credential);
             } catch (e) {
+              console.error("[qestra] Google credential error", e);
               onErrorRef.current(
-                e instanceof Error
-                  ? e.message
-                  : "Google-Anmeldung fehlgeschlagen."
+                "Anmeldung mit Google ist fehlgeschlagen. Bitte E-Mail nutzen."
               );
             }
           },
@@ -131,20 +130,11 @@ export function GoogleButton({ role, onCredential, onError, label }: Props) {
         });
         if (!cancelled) {
           didReady = true;
-          setReady(true);
-          setMissing(false);
-          setHint(null);
+          setStatus("ready");
         }
       } catch (e) {
-        setMissing(true);
-        setHint(
-          e instanceof Error
-            ? e.message
-            : "Google konnte nicht geladen werden. Bitte mit E-Mail fortfahren."
-        );
-        onErrorRef.current(
-          "Google-Login nicht verfügbar — bitte E-Mail nutzen."
-        );
+        console.warn("[qestra] Google Sign-In unavailable", e);
+        setStatus("hidden");
       }
     };
 
@@ -157,17 +147,19 @@ export function GoogleButton({ role, onCredential, onError, label }: Props) {
 
   void role;
 
+  if (status === "hidden" || status === "unavailable") {
+    return null;
+  }
+
   return (
-    <div className="space-y-2">
-      {label && <p className="text-center text-xs text-slate-500">{label}</p>}
-      <div ref={hostRef} className="flex min-h-[44px] justify-center" />
-      {!ready && !missing && (
-        <p className="text-center text-xs text-slate-500">Google wird geladen…</p>
+    <div className="space-y-2" data-testid="google-login">
+      {label && status === "ready" && (
+        <p className="text-center text-xs text-slate-500">{label}</p>
       )}
-      {missing && (
-        <p className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-center text-xs text-slate-400">
-          {hint ||
-            "Google-Login nicht verfügbar. Bitte mit E-Mail und Passwort fortfahren."}
+      <div ref={hostRef} className="flex min-h-[44px] justify-center" />
+      {status === "checking" && (
+        <p className="text-center text-xs text-slate-500" aria-live="polite">
+          Optionen werden geprüft…
         </p>
       )}
     </div>

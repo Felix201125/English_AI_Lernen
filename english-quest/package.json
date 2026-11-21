@@ -4,12 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "prebuild": "node scripts/write-robots.mjs && node scripts/check-legal.mjs",
     "build": "next build",
     "build:hetzner": "bash scripts/build-hetzner.sh",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "smoke": "node scripts/smoke-public.mjs",
+    "check:legal": "REQUIRE_LEGAL=1 node scripts/check-legal.mjs"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",

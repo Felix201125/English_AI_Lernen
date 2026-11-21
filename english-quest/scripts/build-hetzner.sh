@@ -3,9 +3,23 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
+# Staging/Dev-Builds: immer noindex, sofern nicht explizit Produktion
+export NEXT_PUBLIC_FORCE_NOINDEX="${NEXT_PUBLIC_FORCE_NOINDEX:-1}"
+if [[ "${QESTRA_PRODUCTION_BUILD:-}" == "1" ]]; then
+  export NEXT_PUBLIC_FORCE_NOINDEX=0
+  export REQUIRE_LEGAL=1
+fi
+
+echo "→ robots.txt + Legal-Check…"
+node "$ROOT/scripts/write-robots.mjs"
+node "$ROOT/scripts/check-legal.mjs"
+
 echo "→ Building static export…"
 rm -rf "$ROOT/.next" "$ROOT/out"
 npm run build
+
+echo "→ Smoke + Text-Check…"
+node "$ROOT/scripts/smoke-public.mjs" "$ROOT/out"
 
 DIST="$ROOT/dist-hetzner"
 rm -rf "$DIST"

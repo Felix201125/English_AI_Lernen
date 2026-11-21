@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AuthShell, authInputClass } from "@/components/auth/auth-shell";
-import { GoogleButton } from "@/components/auth/google-button";
+import { GoogleAuthSection } from "@/components/auth/google-auth-section";
 import { useApp } from "@/components/providers/app-provider";
 import { Button } from "@/components/ui/button";
 import type { UserRole } from "@/lib/auth/types";
@@ -255,16 +255,13 @@ export default function RegisterPage() {
           {busy ? "Konto wird erstellt…" : "Registrieren"}
         </Button>
 
-        <div className="relative py-2 text-center text-xs text-slate-500">
-          <span>oder mit Google</span>
-        </div>
-
-        <GoogleButton
+        <GoogleAuthSection
           role={role}
+          dividerText="oder mit Google"
           label={
             role === "teacher"
-              ? "Google-Konto als Lehrer verknüpfen"
-              : "Google-Konto als Schüler verknüpfen"
+              ? "Google-Konto als Lehrkraft verknüpfen"
+              : "Google-Konto als Schüler:in verknüpfen"
           }
           onError={setError}
           onCredential={async (idToken) => {
