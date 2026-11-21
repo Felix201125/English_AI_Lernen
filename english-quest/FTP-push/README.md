@@ -1,16 +1,14 @@
-# FTP-Push
+# FTP-Push Staging
 
-## Aktueller Stand — Schülerbereich-Audit
+Inhalt = aktueller Full-Deploy aus `dist-hetzner/` (Auftrag 6 Wachstum A–H).
 
-Full Deploy inkl.:
+## Aktueller Stand
 
-- Persistenz `api/student.php` (XP, Log, Interests, Credits)
-- `/impressum`, `/datenschutz`, `robots.txt`, echte `404.html`
-- Onboarding, Games-Katalog, Activity-Fixes
-- Google-Login Timeout/Hinweise
+- Full Static Export inkl. `/ausprobieren/`, Marketing, Fächer, Galerie, Ratgeber, `/start/beispiel-mathe-fussball/`
+- PHP: `guest.php`, `guest_worksheet.php`, `pilot_school.php`, `invites.php`, `newsletter.php`, `analytics.php` (+ auth/ai/daily/student)
+- `robots.txt` noindex (Staging); Legal-Env für Prod separat setzen
+- **Nicht** `api/config.php` mit Secrets überschreiben — Keys nur auf dem Server
 
-Nach Upload:
+## Upload
 
-1. `api/config.php` Keys (Mistral, Daily, **google_client_id**)
-2. Google Cloud Origins: `https://devlearn.klarland.net`
-3. Statusliste: `docs/STUDENT-AREA-AUDIT-STATUS.md`
+Inhalt von `FTP-push/` → Document Root (gleiche relative Pfade). Bestehende `api/config.php` behalten.
