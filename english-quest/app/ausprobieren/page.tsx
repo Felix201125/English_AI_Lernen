@@ -13,6 +13,7 @@ import {
 } from "@/lib/guest/client";
 import { getGuestQuest } from "@/lib/guest/quests";
 import { SiteFooter } from "@/components/legal/site-footer";
+import { trackFunnel } from "@/components/analytics/funnel-tracker";
 import { cn } from "@/lib/utils";
 
 type Step = "interest" | "grade" | "quest" | "ai" | "done";
@@ -42,6 +43,7 @@ export default function AusprobierenPage() {
 
   useEffect(() => {
     void guestStart();
+    trackFunnel("probe_start", "ausprobieren");
   }, []);
 
   const progress =
@@ -99,6 +101,7 @@ export default function AusprobierenPage() {
             const done = await guestComplete();
             setXp(done.payload.xp);
             setConfetti(true);
+            trackFunnel("probe_quest_complete", "ausprobieren");
             setStep("ai");
           })();
         } else {

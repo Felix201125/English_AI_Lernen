@@ -32,6 +32,7 @@ const requiredPaths = [
   "ratgeber/index.html",
   "robots.txt",
   "sitemap.xml",
+  "start/beispiel-mathe-fussball/index.html",
 ];
 
 const forbidden = [

@@ -43,6 +43,7 @@ const paths = [
   "/datenschutz/",
   "/login/",
   "/register/",
+  "/start/beispiel-mathe-fussball/",
 ];
 
 const origin = siteUrl || "https://example.invalid";
