@@ -15,7 +15,7 @@ const skillLabels: Record<string, string> = {
 };
 
 export default function StudentProgressPage() {
-  const { activeStudent } = useApp();
+  const { activeStudent, badgeIds } = useApp();
   const i18n = t();
   const hasHistory = activeStudent.activityHistory.length > 0;
   const hasSkills = Object.values(activeStudent.skills).some((v) => v > 0);
@@ -29,6 +29,14 @@ export default function StudentProgressPage() {
         <div>
           <p className="text-xs text-slate-400">{i18n.common.xp}</p>
           <p className="text-2xl font-bold text-amber-300">{activeStudent.xp}</p>
+          {badgeIds.length > 0 && (
+            <p className="mt-2 text-xs text-emerald-300">
+              Abzeichen:{" "}
+              {badgeIds
+                .map((b) => (b === "erste-quest" ? "Erste Quest" : b))
+                .join(", ")}
+            </p>
+          )}
         </div>
         <div>
           <p className="text-xs text-slate-400">{i18n.progress.level}</p>

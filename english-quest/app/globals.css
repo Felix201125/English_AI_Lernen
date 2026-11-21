@@ -99,3 +99,14 @@ h3,
 .animate-float {
   animation: float-y 3s ease-in-out infinite;
 }
+
+@keyframes eq-confetti-fall {
+  to {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.eq-confetti {
+  animation: eq-confetti-fall 1.8s ease-out forwards;
+}

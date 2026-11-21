@@ -22,6 +22,11 @@ import {
   updateProfileRequest,
 } from "@/lib/auth/client";
 import type { AuthUser, UserRole } from "@/lib/auth/types";
+import {
+  clearLocalGuest,
+  getLocalGuest,
+} from "@/lib/guest/client";
+import { mergeGuestIntoStudent } from "@/lib/guest/merge";
 import { createLog } from "@/lib/activity-log";
 import {
   createStudentLearningState,
@@ -179,6 +184,7 @@ type AppContextValue = {
     opts?: { hasApproval?: boolean; requested?: boolean }
   ) => boolean;
   onboardingDone: boolean;
+  badgeIds: string[];
   completeOnboarding: (input: {
     interests: string[];
     cefrLevel: string;
@@ -205,6 +211,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [learningStates, setLearningStates] = useState(seedStates);
   const [games, setGames] = useState(() => getStudentGameCatalog());
   const [onboardingDone, setOnboardingDone] = useState(true);
+  const [badgeIds, setBadgeIds] = useState<string[]>([]);
+  const [mergedGuestTokens, setMergedGuestTokens] = useState<string[]>([]);
   const [helpRequest, setHelpRequest] = useState<{
     id: string;
     status: "open" | "accepted";
@@ -273,11 +281,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
           gameProgress: {},
           onboardingDone,
           helpRequest,
+          badgeIds,
+          mergedGuestTokens,
         },
         token
       );
     },
-    [onboardingDone, helpRequest]
+    [onboardingDone, helpRequest, badgeIds, mergedGuestTokens]
   );
 
   const ensureStudentProfile = useCallback((user: AuthUser) => {
@@ -292,16 +302,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const remote = await fetchRemoteBundle(sid, token);
       const local = loadLocalBundle(sid);
       const bundle = remote ?? local;
+      let state: LearningState;
+      let badges = bundle?.badgeIds ?? [];
+      let mergedTokens = bundle?.mergedGuestTokens ?? [];
+      let creditsAcc = bundle?.credits;
+      let onboarded = Boolean(bundle?.onboardingDone);
+
       if (bundle?.learningState) {
-        setLearningStates((prev) => ({
-          ...prev,
-          [sid]: {
-            ...bundle.learningState,
-            name: user.name || bundle.learningState.name,
-          },
-        }));
-        if (bundle.credits) setStudentCredits(bundle.credits);
-        setOnboardingDone(Boolean(bundle.onboardingDone));
+        state = {
+          ...bundle.learningState,
+          name: user.name || bundle.learningState.name,
+        };
         setHelpRequest(bundle.helpRequest ?? null);
         setGames((prev) =>
           prev.map((g) =>
@@ -311,18 +322,74 @@ export function AppProvider({ children }: { children: ReactNode }) {
           )
         );
       } else {
-        setLearningStates((prev) => {
-          if (prev[sid]) {
-            return {
-              ...prev,
-              [sid]: { ...prev[sid], name: user.name || prev[sid].name },
-            };
-          }
-          return { ...prev, [sid]: createStudentLearningState(sid, user.name) };
-        });
-        setOnboardingDone(false);
-        setStudentCredits(createCreditAccount("student"));
+        state = createStudentLearningState(sid, user.name);
+        onboarded = false;
+        creditsAcc = createCreditAccount("student");
       }
+
+      const guest = getLocalGuest();
+      if (guest?.payload) {
+        const merge = mergeGuestIntoStudent(
+          {
+            xp: state.xp,
+            interests: state.interests,
+            badgeIds: badges,
+            mergedGuestTokens: mergedTokens,
+          },
+          guest.payload,
+          { tokenId: guest.token }
+        );
+        if (merge.applied) {
+          state = {
+            ...state,
+            xp: merge.student.xp,
+            interests: merge.student.interests,
+          };
+          badges = merge.student.badgeIds;
+          mergedTokens = merge.student.mergedGuestTokens ?? mergedTokens;
+          clearLocalGuest();
+          // Server-Session als gemerged markieren (best effort)
+          try {
+            const base =
+              process.env.NEXT_PUBLIC_AI_API_BASE?.replace(/\/$/, "") ||
+              `${window.location.origin}/api`;
+            await fetch(`${base}/guest.php`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify({
+                action: "merge",
+                token: guest.token,
+                userId: user.id,
+              }),
+            });
+          } catch {
+            /* offline ok */
+          }
+        }
+      }
+
+      setLearningStates((prev) => ({ ...prev, [sid]: state }));
+      if (creditsAcc) setStudentCredits(creditsAcc);
+      setOnboardingDone(onboarded);
+      setBadgeIds(badges);
+      setMergedGuestTokens(mergedTokens);
+      await saveRemoteBundle(
+        {
+          studentId: sid,
+          learningState: state,
+          credits: creditsAcc ?? createCreditAccount("student"),
+          completedActivityIds: state.activityHistory
+            .filter((a) => a.status === "completed")
+            .map((a) => a.activityId),
+          gameProgress: {},
+          onboardingDone: onboarded,
+          helpRequest: bundle?.helpRequest ?? null,
+          badgeIds: badges,
+          mergedGuestTokens: mergedTokens,
+        },
+        token
+      );
       setPersistReady(true);
     })();
   }, []);
@@ -1253,6 +1320,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       markNotificationRead,
       can,
       onboardingDone,
+      badgeIds,
       completeOnboarding,
       helpRequest,
       requestLiveHelp,
@@ -1277,6 +1345,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       activeSubjectId,
       studentCredits,
       onboardingDone,
+      badgeIds,
       helpRequest,
       persistReady,
       learningStates,

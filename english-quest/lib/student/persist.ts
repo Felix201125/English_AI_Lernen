@@ -10,6 +10,10 @@ export type StudentPersistBundle = {
   gameProgress: Record<string, { step: number; status: string }>;
   onboardingDone: boolean;
   helpRequest?: { id: string; status: "open" | "accepted"; at: string } | null;
+  /** Abzeichen (u. a. Gast-Merge) */
+  badgeIds?: string[];
+  /** Bereits übernommene Gast-Token (Idempotenz) */
+  mergedGuestTokens?: string[];
 };
 
 const keyFor = (studentId: string) => `qestra.student.${studentId}`;

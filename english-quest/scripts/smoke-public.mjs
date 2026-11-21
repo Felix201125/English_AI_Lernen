@@ -18,6 +18,9 @@ const requiredPaths = [
   "register/index.html",
   "preise/index.html",
   "tutoren/index.html",
+  "ausprobieren/index.html",
+  "demo/index.html",
+  "probe/index.html",
   "robots.txt",
 ];
 
@@ -71,6 +74,9 @@ const publicRoots = [
   "register",
   "preise",
   "tutoren",
+  "ausprobieren",
+  "demo",
+  "probe",
 ].map((d) => (d ? path.join(root, d) : root));
 
 const htmlFiles = [];

@@ -34,6 +34,7 @@ cp "$ROOT/php-api/ai.php" "$DIST/api/"
 cp "$ROOT/php-api/daily.php" "$DIST/api/"
 cp "$ROOT/php-api/auth.php" "$DIST/api/"
 cp "$ROOT/php-api/student.php" "$DIST/api/"
+cp "$ROOT/php-api/guest.php" "$DIST/api/"
 cp "$ROOT/php-api/config.example.php" "$DIST/api/"
 cp "$ROOT/php-api/.htaccess" "$DIST/api/"
 cp "$ROOT/php-api/data/.htaccess" "$DIST/api/data/"
@@ -55,6 +56,10 @@ ErrorDocument 404 /404.html
 
 # Keep PHP API reachable
 RewriteRule ^api/ - [L]
+
+# Gast-Probe-Aliase
+RewriteRule ^demo/?$ /ausprobieren/ [R=301,L]
+RewriteRule ^probe/?$ /ausprobieren/ [R=301,L]
 
 # Serve existing files/directories
 RewriteCond %{REQUEST_FILENAME} -f [OR]
