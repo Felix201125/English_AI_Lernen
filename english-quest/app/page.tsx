@@ -5,6 +5,10 @@ import { FAQ_ITEMS } from "@/lib/content/faq";
 import { buildPageMetadata } from "@/lib/seo/site-meta";
 import { SiteFooter } from "@/components/legal/site-footer";
 import { SiteHeader } from "@/components/landing/site-header";
+import { ClassCodeEntry } from "@/components/landing/class-code-entry";
+import { NewsletterForm } from "@/components/landing/newsletter-form";
+import { LandingFunnel } from "@/components/analytics/funnel-tracker";
+
 
 export const metadata = buildPageMetadata({
   title: `Qestra – Lernen mit KI nach deinen Interessen | Klasse 5–10`,
@@ -34,6 +38,7 @@ export default function LandingPage() {
         aria-hidden
       />
       <SiteHeader />
+      <LandingFunnel />
 
       <main className="mx-auto max-w-6xl px-4 sm:px-6">
         {/* Hero */}
@@ -70,6 +75,10 @@ export default function LandingPage() {
             <UiCapture title="KI-Chat" subtitle="Hilfe ohne Druck" accent="cyan" />
             <UiCapture title="Arbeitsblatt" subtitle="Für Lehrkräfte" accent="violet" />
           </div>
+        </section>
+
+        <section className="pb-4">
+          <ClassCodeEntry />
         </section>
 
         {/* So funktioniert's */}
@@ -216,6 +225,10 @@ export default function LandingPage() {
             ))}
           </div>
           <FaqJsonLd />
+        </section>
+
+        <section className="py-8">
+          <NewsletterForm />
         </section>
 
         {/* Abschluss */}
