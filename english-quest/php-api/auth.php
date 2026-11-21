@@ -137,6 +137,92 @@ try {
         exit;
     }
 
+    if ($action === 'magic_link_request') {
+        $email = strtolower(trim((string)($input['email'] ?? '')));
+        // Immer gleiche Antwort (keine Enumeration)
+        $generic = ['ok' => true, 'message' => 'Falls ein Konto existiert, haben wir eine Mail geschickt.'];
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            echo json_encode($generic);
+            exit;
+        }
+        $users = eq_read_json($usersFile) ?: [];
+        $found = null;
+        foreach ($users as $u) {
+            if (strtolower((string)($u['email'] ?? '')) === $email) {
+                $found = $u;
+                break;
+            }
+        }
+        $rateFile = $dataDir . '/magic_link_rate.json';
+        $rates = eq_read_json($rateFile) ?: [];
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '0';
+        $rkey = $ip . ':' . date('Y-m-d-H');
+        if ((int)($rates[$rkey] ?? 0) >= 10) {
+            echo json_encode($generic);
+            exit;
+        }
+        $rates[$rkey] = (int)($rates[$rkey] ?? 0) + 1;
+        eq_write_json($rateFile, $rates);
+        if ($found) {
+            $token = bin2hex(random_bytes(24));
+            $magicFile = $dataDir . '/magic_links.json';
+            $magic = eq_read_json($magicFile) ?: [];
+            $magic[hash('sha256', $token)] = [
+                'userId' => $found['id'],
+                'expiresAt' => time() + 900,
+                'used' => false,
+            ];
+            eq_write_json($magicFile, $magic);
+            $from = (string)($config['mail_from'] ?? '');
+            $origin = (string)($config['public_origin'] ?? '');
+            if ($from !== '' && $origin !== '' && function_exists('mail')) {
+                @mail(
+                    $email,
+                    'Dein Qestra Anmelde-Link',
+                    "Anmelden: {$origin}/login/?magic=" . urlencode($token) . "\n\nGültig 15 Minuten.",
+                    'From: ' . $from
+                );
+            }
+        }
+        echo json_encode($generic, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    if ($action === 'magic_link_consume') {
+        $token = (string)($input['token'] ?? '');
+        $magicFile = $dataDir . '/magic_links.json';
+        $magic = eq_read_json($magicFile) ?: [];
+        $hash = hash('sha256', $token);
+        $row = $magic[$hash] ?? null;
+        if (!$row || !empty($row['used']) || (int)($row['expiresAt'] ?? 0) < time()) {
+            http_response_code(401);
+            echo json_encode(['ok' => false, 'error' => 'Link ungültig oder abgelaufen.']);
+            exit;
+        }
+        $magic[$hash]['used'] = true;
+        eq_write_json($magicFile, $magic);
+        $users = eq_read_json($usersFile) ?: [];
+        $found = null;
+        foreach ($users as $u) {
+            if (($u['id'] ?? '') === ($row['userId'] ?? '')) {
+                $found = $u;
+                break;
+            }
+        }
+        if (!$found) {
+            http_response_code(401);
+            echo json_encode(['ok' => false, 'error' => 'Link ungültig oder abgelaufen.']);
+            exit;
+        }
+        $sess = eq_create_session($sessionsFile, $found['id']);
+        echo json_encode([
+            'ok' => true,
+            'token' => $sess,
+            'user' => eq_public_user($found),
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
     if ($action === 'login') {
         $email = strtolower(trim((string)($input['email'] ?? $input['username'] ?? '')));
         $password = (string)($input['password'] ?? '');

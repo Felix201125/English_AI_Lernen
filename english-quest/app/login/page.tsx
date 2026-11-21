@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthShell, authInputClass } from "@/components/auth/auth-shell";
 import { GoogleAuthSection } from "@/components/auth/google-auth-section";
+import { MagicLinkForm } from "@/components/auth/magic-link-form";
+import { ClassCodeEntry } from "@/components/landing/class-code-entry";
 import { useApp } from "@/components/providers/app-provider";
 import { Button } from "@/components/ui/button";
 
@@ -129,7 +131,11 @@ function LoginForm() {
             }
           }}
         />
+        <MagicLinkForm />
       </form>
+      <div className="mt-4">
+        <ClassCodeEntry />
+      </div>
     </AuthShell>
   );
 }
