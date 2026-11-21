@@ -25,7 +25,13 @@ const requiredPaths = [
   "eltern/index.html",
   "lehrkraefte/index.html",
   "schulen/index.html",
+  "faecher/index.html",
+  "faecher/mathe/index.html",
+  "faecher/mathe/prozentrechnung-klasse-6/index.html",
+  "arbeitsblaetter/index.html",
+  "ratgeber/index.html",
   "robots.txt",
+  "sitemap.xml",
 ];
 
 const forbidden = [

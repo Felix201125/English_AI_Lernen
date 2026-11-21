@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "prebuild": "node scripts/write-robots.mjs && node scripts/check-legal.mjs",
+    "prebuild": "node scripts/write-robots.mjs && node scripts/write-sitemap.mjs && node scripts/check-legal.mjs",
     "build": "next build",
     "build:hetzner": "bash scripts/build-hetzner.sh",
     "start": "next start",
