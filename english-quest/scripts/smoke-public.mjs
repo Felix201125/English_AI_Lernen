@@ -21,6 +21,10 @@ const requiredPaths = [
   "ausprobieren/index.html",
   "demo/index.html",
   "probe/index.html",
+  "faq/index.html",
+  "eltern/index.html",
+  "lehrkraefte/index.html",
+  "schulen/index.html",
   "robots.txt",
 ];
 
