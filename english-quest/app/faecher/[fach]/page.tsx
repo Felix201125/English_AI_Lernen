@@ -2,12 +2,17 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BRAND } from "@/lib/brand";
 import { getSubject, PUBLIC_SUBJECTS } from "@/lib/content/subjects";
+import {
+  getCatalogSubject,
+  SUBJECT_CATALOG,
+} from "@/lib/content/subject-catalog";
 import { buildPageMetadata } from "@/lib/seo/site-meta";
 import { SiteFooter } from "@/components/legal/site-footer";
 import { SiteHeader } from "@/components/landing/site-header";
+import { ComingSoonSubject } from "./coming-soon";
 
 export function generateStaticParams() {
-  return PUBLIC_SUBJECTS.map((s) => ({ fach: s.slug }));
+  return SUBJECT_CATALOG.map((s) => ({ fach: s.slug }));
 }
 
 export async function generateMetadata({
@@ -16,12 +21,12 @@ export async function generateMetadata({
   params: Promise<{ fach: string }>;
 }) {
   const { fach } = await params;
-  const subject = getSubject(fach);
-  if (!subject) return {};
+  const catalog = getCatalogSubject(fach);
+  if (!catalog) return {};
   return buildPageMetadata({
-    title: `${subject.title} lernen | ${BRAND.name}`,
-    description: subject.summary,
-    path: `/faecher/${subject.slug}/`,
+    title: `${catalog.title} lernen | ${BRAND.name}`,
+    description: catalog.summary,
+    path: `/faecher/${catalog.slug}/`,
   });
 }
 
@@ -31,8 +36,19 @@ export default async function FachPage({
   params: Promise<{ fach: string }>;
 }) {
   const { fach } = await params;
-  const subject = getSubject(fach);
-  if (!subject) notFound();
+  const catalog = getCatalogSubject(fach);
+  if (!catalog) notFound();
+
+  if (catalog.status === "bald") {
+    return <ComingSoonSubject subject={catalog} />;
+  }
+
+  const subject = getSubject(fach) ?? {
+    slug: catalog.slug,
+    title: catalog.title,
+    summary: catalog.summary,
+    topics: [],
+  };
 
   return (
     <div className="min-h-dvh">
@@ -69,3 +85,5 @@ export default async function FachPage({
     </div>
   );
 }
+
+void PUBLIC_SUBJECTS;
