@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 /** Veraltet → Startseite #so-funktionierts */
@@ -13,9 +14,9 @@ export default function DiscoverRedirectPage() {
     <main className="flex min-h-dvh items-center justify-center text-slate-300">
       <p>
         Weiterleitung zur{" "}
-        <a className="text-indigo-300 underline" href="/#so-funktionierts">
+        <Link className="text-indigo-300 underline" href="/#so-funktionierts">
           Startseite
-        </a>
+        </Link>
         …
       </p>
     </main>
