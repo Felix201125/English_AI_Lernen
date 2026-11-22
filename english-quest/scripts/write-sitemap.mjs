@@ -17,26 +17,18 @@ const paths = [
   "/",
   "/ausprobieren/",
   "/preise/",
-  "/tutoren/",
   "/eltern/",
   "/lehrkraefte/",
   "/schulen/",
   "/faecher/",
   "/faecher/mathe/",
-  "/faecher/mathe/prozentrechnung-klasse-6/",
-  "/faecher/mathe/bruchrechnung-klasse-6/",
   "/faecher/deutsch/",
-  "/faecher/deutsch/wortarten-klasse-5/",
   "/faecher/englisch/",
-  "/faecher/englisch/vocabulary-klasse-5/",
+  "/faecher/naturwissenschaften/",
+  "/faecher/geschichte/",
+  "/faecher/language/",
   "/arbeitsblaetter/",
-  "/arbeitsblaetter/mathe-prozent-6/",
-  "/arbeitsblaetter/deutsch-wortarten-5/",
-  "/arbeitsblaetter/englisch-vocab-5/",
   "/ratgeber/",
-  "/ratgeber/lernen-mit-ki-eltern/",
-  "/ratgeber/motivation-7-klasse/",
-  "/ratgeber/vokabeln-mit-spielen/",
   "/faq/",
   "/kontakt/",
   "/impressum/",
@@ -45,6 +37,7 @@ const paths = [
   "/register/",
   "/start/beispiel-mathe-fussball/",
 ];
+// Keine /pricing/, /tutors/, /discover/, /tutoren/ in der Sitemap
 
 const origin = siteUrl || "https://example.invalid";
 const body = isDev
