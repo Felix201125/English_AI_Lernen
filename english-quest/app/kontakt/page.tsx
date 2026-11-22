@@ -13,7 +13,7 @@ export const metadata = buildPageMetadata({
 
 export default function KontaktPage() {
   const legal = getLegalConfig();
-  const email = legalIsComplete(legal) ? legal.email : "";
+  const complete = legalIsComplete(legal);
 
   return (
     <div className="min-h-dvh">
@@ -21,19 +21,34 @@ export default function KontaktPage() {
       <main className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
         <h1 className="font-display text-3xl font-bold text-white">Kontakt</h1>
         <div className="eq-card mt-6 space-y-3 p-6 text-sm text-slate-300">
-          {email ? (
-            <p>
-              E-Mail:{" "}
-              <a className="text-indigo-300 hover:underline" href={`mailto:${email}`}>
-                {email}
-              </a>
-            </p>
-          ) : (
-            <p>
-              Die Kontaktadresse erscheint hier, sobald die Betreiberangaben
-              hinterlegt sind. Bis dahin nutze bitte das Impressum.
-            </p>
-          )}
+          {complete ? (
+            <>
+              <p>
+                {legal.operatorName}
+                <br />
+                {legal.street}
+                <br />
+                {legal.zipCity}
+                <br />
+                {legal.country}
+              </p>
+              <p>
+                E-Mail:{" "}
+                <a
+                  className="text-indigo-300 hover:underline"
+                  href={`mailto:${legal.email}`}
+                >
+                  {legal.email}
+                </a>
+                {legal.phone ? (
+                  <>
+                    <br />
+                    Telefon: {legal.phone}
+                  </>
+                ) : null}
+              </p>
+            </>
+          ) : null}
           <Link href="/impressum/" className="text-indigo-300 hover:underline">
             Zum Impressum
           </Link>

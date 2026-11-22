@@ -1,9 +1,6 @@
 import Link from "next/link";
 import { BRAND } from "@/lib/brand";
-import {
-  getLegalConfig,
-  legalIsComplete,
-} from "@/lib/legal/config";
+import { getLegalConfig, legalIsComplete } from "@/lib/legal/config";
 import { buildPageMetadata } from "@/lib/seo/site-meta";
 import { SiteFooter } from "@/components/legal/site-footer";
 
@@ -16,9 +13,6 @@ export const metadata = buildPageMetadata({
 export default function ImpressumPage() {
   const legal = getLegalConfig();
   const complete = legalIsComplete(legal);
-  const isProd =
-    process.env.NODE_ENV === "production" &&
-    process.env.NEXT_PUBLIC_FORCE_NOINDEX !== "1";
 
   return (
     <main className="mx-auto min-h-dvh min-h-screen max-w-2xl px-6 py-12">
@@ -29,17 +23,10 @@ export default function ImpressumPage() {
         Impressum
       </h1>
       <div className="eq-card mt-6 space-y-4 p-6 text-sm text-slate-300">
-        {!complete && !isProd && (
-          <p className="rounded-xl border border-white/15 bg-white/5 px-3 py-2 text-slate-300">
-            Angaben folgen.
-          </p>
-        )}
         {complete ? (
           <>
             <p>
-              <strong className="text-white">
-                Angaben gemäß § 5 DDG
-              </strong>
+              <strong className="text-white">Angaben gemäß § 5 DDG</strong>
             </p>
             <p>
               {legal.operatorName}
@@ -65,9 +52,7 @@ export default function ImpressumPage() {
                 </>
               ) : null}
             </p>
-            <p>
-              Verantwortlich für den Inhalt: {legal.responsiblePerson}
-            </p>
+            <p>Verantwortlich für den Inhalt: {legal.responsiblePerson}</p>
             {(legal.registerCourt || legal.registerNumber) && (
               <p>
                 Register: {legal.registerCourt} {legal.registerNumber}
@@ -76,10 +61,9 @@ export default function ImpressumPage() {
             {legal.vatId && <p>USt-IdNr.: {legal.vatId}</p>}
           </>
         ) : (
-          !isProd && (
-            <p className="text-slate-400">
-              Die vollständige Anbieterkennzeichnung wird ergänzt, sobald die
-              Betreiberangaben hinterlegt sind.
+          process.env.NODE_ENV !== "production" && (
+            <p className="sr-only" data-dev-legal-incomplete="1">
+              Legal config incomplete (dev only)
             </p>
           )
         )}

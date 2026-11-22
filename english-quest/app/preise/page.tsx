@@ -64,9 +64,7 @@ export default function PreisePage() {
                 <strong className="text-white">Live-Stunden:</strong>{" "}
                 {site.priceLessonHint}
               </p>
-            ) : (
-              <p>Live-Stunden: Angaben folgen vom Betreiber.</p>
-            )}
+            ) : null}
             {site.priceCreditsHint ? (
               <p>
                 <strong className="text-white">Credits:</strong>{" "}

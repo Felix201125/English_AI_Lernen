@@ -139,7 +139,6 @@ export const de = {
   legal: {
     impressumTitle: "Impressum",
     privacyTitle: "Datenschutz",
-    pending: "Angaben folgen",
   },
 } as const;
 

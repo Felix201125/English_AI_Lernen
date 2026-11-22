@@ -31,12 +31,21 @@ export default function DatenschutzPage() {
             {legal.street}, {legal.zipCity}
             <br />
             E-Mail:{" "}
-            <a className="text-indigo-300 hover:underline" href={`mailto:${legal.email}`}>
+            <a
+              className="text-indigo-300 hover:underline"
+              href={`mailto:${legal.email}`}
+            >
               {legal.email}
             </a>
           </p>
         ) : (
-          <p>Siehe Impressum — Angaben folgen, sobald hinterlegt.</p>
+          <p>
+            Verantwortlicher ist der im{" "}
+            <Link href="/impressum/" className="text-indigo-300 hover:underline">
+              Impressum
+            </Link>{" "}
+            genannte Anbieter.
+          </p>
         )}
 
         <h2 className="font-display text-lg text-white">
@@ -46,17 +55,27 @@ export default function DatenschutzPage() {
           {BRAND.name} verarbeitet Kontodaten, Lernfortschritt, Nachrichten in
           der Plattform und ggf. Videodaten, um Lernen und Unterricht
           bereitzustellen. Rechtsgrundlagen u. a. Art. 6 Abs. 1 lit. b DSGVO
-          (Vertrag) und lit. f (sicherer Betrieb). Bei Nutzerinnen und Nutzern
-          unter 16 Jahren ist die Einwilligung der Erziehungsberechtigten nach
-          Art. 8 DSGVO erforderlich — der Ablauf ist in der Registrierung
-          umgesetzt (Zustimmung / Eltern-Einladung).
+          (Vertrag) und lit. f (sicherer Betrieb).
         </p>
 
-        <h2 className="font-display text-lg text-white">3. Datenkategorien</h2>
+        <h2 className="font-display text-lg text-white">
+          3. Einwilligung unter 16 Jahren (Art. 8 DSGVO)
+        </h2>
+        <p>
+          Wenn Sie oder Ihr Kind unter 16 Jahren ein Konto anlegen möchten,
+          brauchen wir die Einwilligung einer erziehungsberechtigten Person.
+          Das geschieht bei der Anmeldung: Sie bestätigen die Einwilligung
+          ausdrücklich, oder Ihr Kind lädt Sie über einen Einladungslink ein,
+          damit Sie die Einwilligung und die Verknüpfung des Elternkontos
+          vornehmen können. Ohne diese Einwilligung ist die Nutzung für
+          unter 16-Jährige nicht vorgesehen.
+        </p>
+
+        <h2 className="font-display text-lg text-white">4. Datenkategorien</h2>
         <ul className="list-disc space-y-1 pl-5">
           <li>Konto: Name, E-Mail, Rolle, Passwort-Hash bzw. Google-Subjekt</li>
           <li>Lernstand: XP, Aktivitäten, Interessen, Fachwahl</li>
-          <li>Kommunikation in der App (Lehrkraft ↔ Schüler)</li>
+          <li>Kommunikation in der App (Lehrkraft ↔ Schüler:in)</li>
           <li>Buchungen und Termine</li>
           <li>Technische Logs (Fehler, Sicherheit)</li>
           <li>
@@ -65,7 +84,7 @@ export default function DatenschutzPage() {
           </li>
         </ul>
 
-        <h2 className="font-display text-lg text-white">4. Auftragsverarbeiter</h2>
+        <h2 className="font-display text-lg text-white">5. Auftragsverarbeiter</h2>
         <ul className="list-disc space-y-2 pl-5">
           <li>
             <strong className="text-white">Hetzner</strong> — Hosting (soweit
@@ -85,27 +104,27 @@ export default function DatenschutzPage() {
           </li>
         </ul>
 
-        <h2 className="font-display text-lg text-white">5. Speicherdauer</h2>
+        <h2 className="font-display text-lg text-white">6. Speicherdauer</h2>
         <p>
           Kontodaten bis zur Löschung des Kontos. Gast-Sessions verfallen nach
           wenigen Tagen. Logs werden nur so lange wie für Sicherheit nötig
           behalten.
         </p>
 
-        <h2 className="font-display text-lg text-white">6. Betroffenenrechte</h2>
+        <h2 className="font-display text-lg text-white">7. Betroffenenrechte</h2>
         <p>
-          Du hast Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung,
+          Sie haben Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung,
           Datenübertragbarkeit und Widerspruch sowie Beschwerde bei einer
           Aufsichtsbehörde. Konten können in den Einstellungen gelöscht werden.
         </p>
 
         <h2 className="font-display text-lg text-white">
-          7. Minderjährige & Eltern
+          8. Minderjährige &amp; Eltern
         </h2>
         <p>
-          Unter 16 Jahren ist die Einwilligung der Erziehungsberechtigten nötig.
           Es gibt keine öffentlichen Schülerprofile und keinen Zugriff auf
-          Kontaktlisten des Geräts.
+          Kontaktlisten des Geräts. Weitere Details zur Einwilligung unter 16
+          finden Sie oben unter Art. 8 DSGVO.
         </p>
       </div>
       <SiteFooter className="mt-8" />
