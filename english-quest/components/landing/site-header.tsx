@@ -15,7 +15,19 @@ export function SiteHeader({ sticky = true }: { sticky?: boolean }) {
           </p>
           <p className="truncate text-xs text-slate-400">{BRAND.tagline}</p>
         </Link>
-        <nav className="flex shrink-0 items-center gap-2">
+        <nav className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          <Link
+            href="/arbeitsblaetter/"
+            className="hidden text-sm text-slate-300 hover:text-white md:inline"
+          >
+            Arbeitsblätter
+          </Link>
+          <Link
+            href="/ratgeber/"
+            className="hidden text-sm text-slate-300 hover:text-white md:inline"
+          >
+            Ratgeber
+          </Link>
           <Link
             href="/login/"
             className="hidden rounded-full border border-white/15 px-3 py-2 text-sm text-slate-200 hover:border-white/30 sm:inline-block"

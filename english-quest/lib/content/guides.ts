@@ -22,8 +22,7 @@ export const GUIDES: GuideArticle[] = [
   {
     slug: "motivation-7-klasse",
     title: "Motivation in der 7. Klasse",
-    description:
-      "Allgemeine, vorsichtige Hinweise zu Lernmotivation in der Mittelstufe.",
+    description: "Konkrete Tipps für den Lernalltag.",
     publishedAt: "2026-03-01",
     body: [
       "Viele Jugendliche brauchen kurze Erfolge und Themen, die an ihre Interessen anschließen.",
@@ -35,12 +34,34 @@ export const GUIDES: GuideArticle[] = [
     slug: "vokabeln-mit-spielen",
     title: "Vokabeln lernen mit Spielen",
     description:
-      "Praktische Ideen, Vokabeln wiederholt und ohne Drill zu üben.",
+      "Praktische Ideen, um Vokabeln wiederholt und ohne Drill zu üben.",
     publishedAt: "2026-03-01",
     body: [
       "Wiederholung in kurzen Intervallen hilft oft mehr als lange Listen am Stück.",
       "Kombiniert Bild, Klang und eigenen Satz — so bleiben Wörter besser hängen.",
       "In Qestra kannst du Englisch-Quests spielen und später den Fortschritt speichern.",
+    ],
+  },
+  {
+    slug: "lernpausen-sinnvoll",
+    title: "Lernpausen sinnvoll nutzen",
+    description: "Kurze Pausen ohne Schuldgefühl — was wirklich hilft.",
+    publishedAt: "2026-03-15",
+    body: [
+      "Nach 20–30 Minuten konzentriertes Üben sinkt die Aufmerksamkeit bei vielen Kindern — eine kurze Pause ist normal.",
+      "Bewegung, Wasser trinken oder ein kurzer Blick aus dem Fenster reicht oft; kein langes Scrollen nötig.",
+      "Feste Mini-Ziele („diese drei Aufgaben“) machen den Wiedereinstieg leichter als ein offenes „weiterlernen“.",
+    ],
+  },
+  {
+    slug: "hausaufgaben-elternbegleitung",
+    title: "Hausaufgaben begleiten ohne Druck",
+    description: "Wie Eltern beim Nachfragen helfen, ohne alles vorzusagen.",
+    publishedAt: "2026-03-15",
+    body: [
+      "Fragen wie „Was ist die erste Aufgabe?“ oder „Was hast du schon verstanden?“ öffnen mehr als sofortige Lösungen.",
+      "Wenn es stockt: gemeinsam die Aufgabenstellung lesen, nicht den ganzen Satz vorsagen.",
+      "Qestra kann Übungen ergänzen — ersetzt aber nicht die Rückmeldung aus der Klasse.",
     ],
   },
 ];

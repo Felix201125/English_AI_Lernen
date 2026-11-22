@@ -32,7 +32,7 @@ export default function ArbeitsblaetterPage() {
                 {w.title}
               </Link>
               <p className="text-sm text-slate-400">
-                {w.subject} · Klasse {w.grade} · {w.topic}
+                {w.subjectLabel} · Klasse {w.grade} · {w.topic}
               </p>
             </li>
           ))}
