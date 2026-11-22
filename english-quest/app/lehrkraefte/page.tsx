@@ -95,8 +95,8 @@ export default function LehrkraeftePage() {
           Für Lehrkräfte
         </h1>
         <p className="mt-3 text-slate-300">
-          Arbeitsblätter in Sekunden vorbereiten — Vorschau ohne Login, Download
-          nach kostenloser Registrierung.
+          Arbeitsblätter in 30 Sekunden vorbereiten — Vorschau ohne Login,
+          Download nach kostenloser Registrierung.
         </p>
 
         <form onSubmit={onPreview} className="eq-card mt-8 space-y-4 p-6">

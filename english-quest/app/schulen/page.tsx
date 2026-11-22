@@ -89,6 +89,7 @@ export default function SchulenPage() {
 
         <section className="mt-8 space-y-2">
           <h2 className="font-display text-xl text-white">AV-Vertrag</h2>
+          <p className="text-sm text-slate-300">AV-Vertrag auf Anfrage</p>
           {avPath ? (
             <a
               href={avPath}
@@ -98,12 +99,7 @@ export default function SchulenPage() {
             >
               Auftragsverarbeitungsvertrag herunterladen
             </a>
-          ) : (
-            <p className="text-sm text-slate-400">
-              Der AV-Vertrag wird bereitgestellt, sobald die Datei vom Betreiber
-              hinterlegt ist.
-            </p>
-          )}
+          ) : null}
         </section>
 
         <form onSubmit={onSubmit} className="eq-card mt-8 space-y-3 p-6">

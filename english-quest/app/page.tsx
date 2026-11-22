@@ -1,14 +1,13 @@
 import Link from "next/link";
-import { SUBJECTS } from "@/lib/subjects";
 import { getSiteConfig } from "@/lib/legal/config";
 import { FAQ_ITEMS } from "@/lib/content/faq";
+import { SUBJECT_CATALOG } from "@/lib/content/subject-catalog";
 import { buildPageMetadata } from "@/lib/seo/site-meta";
 import { SiteFooter } from "@/components/legal/site-footer";
 import { SiteHeader } from "@/components/landing/site-header";
 import { ClassCodeEntry } from "@/components/landing/class-code-entry";
 import { NewsletterForm } from "@/components/landing/newsletter-form";
 import { LandingFunnel } from "@/components/analytics/funnel-tracker";
-
 
 export const metadata = buildPageMetadata({
   title: `Qestra – Lernen mit KI nach deinen Interessen | Klasse 5–10`,
@@ -29,8 +28,6 @@ export default function LandingPage() {
     ? [...TRUST, "Server in Deutschland"]
     : [...TRUST];
 
-  const subjects = Object.values(SUBJECTS);
-
   return (
     <div className="relative min-h-dvh overflow-x-hidden">
       <div
@@ -41,7 +38,6 @@ export default function LandingPage() {
       <LandingFunnel />
 
       <main className="mx-auto max-w-6xl px-4 sm:px-6">
-        {/* Hero */}
         <section className="grid items-center gap-10 py-10 md:grid-cols-2 md:py-14">
           <div className="space-y-5">
             <h1 className="font-display text-4xl font-bold leading-tight text-white md:text-5xl">
@@ -81,8 +77,7 @@ export default function LandingPage() {
           <ClassCodeEntry />
         </section>
 
-        {/* So funktioniert's */}
-        <section className="py-12">
+        <section id="so-funktionierts" className="py-12 scroll-mt-24">
           <h2 className="font-display text-2xl font-bold text-white md:text-3xl">
             So funktioniert&apos;s
           </h2>
@@ -101,7 +96,7 @@ export default function LandingPage() {
               {
                 n: "3",
                 t: "Fortschritt sehen",
-                d: "Du und ggf. Eltern oder Lehrkraft sehen, was du gelernt hast.",
+                d: "Du – und wenn nötig deine Eltern oder deine Lehrkraft – seht, was du gelernt hast.",
               },
             ].map((s) => (
               <li key={s.n} className="eq-card p-5">
@@ -113,7 +108,22 @@ export default function LandingPage() {
           </ol>
         </section>
 
-        {/* Zielgruppen */}
+        <section id="fuer-schueler" className="py-12 scroll-mt-24">
+          <h2 className="font-display text-2xl font-bold text-white">
+            Für Schüler:innen
+          </h2>
+          <p className="mt-2 max-w-2xl text-slate-300">
+            Quests zu deinen Interessen, XP und Abzeichen, ein KI-Lernbegleiter
+            ohne Druck — und eine Probe ohne Anmeldung.
+          </p>
+          <Link
+            href="/ausprobieren/"
+            className="mt-4 inline-block rounded-2xl bg-gradient-to-r from-indigo-500 to-cyan-400 px-5 py-3 font-semibold text-white"
+          >
+            Jetzt ausprobieren – ohne Anmeldung
+          </Link>
+        </section>
+
         <section className="py-12">
           <h2 className="font-display text-2xl font-bold text-white">
             Für wen ist Qestra?
@@ -122,8 +132,8 @@ export default function LandingPage() {
             <AudienceCard
               title="Für Schüler:innen"
               text="Lerne mit Quests zu deinen Interessen und einem KI-Begleiter."
-              href="/ausprobieren/"
-              cta="Jetzt ausprobieren"
+              href="/#fuer-schueler"
+              cta="Mehr für Schüler:innen"
             />
             <AudienceCard
               title="Für Eltern"
@@ -146,50 +156,48 @@ export default function LandingPage() {
           </p>
         </section>
 
-        {/* Fächer */}
         <section className="py-12">
           <h2 className="font-display text-2xl font-bold text-white">Fächer</h2>
           <p className="mt-2 text-slate-400">
-            Englisch zuerst — Architektur für alle Fächer.
+            Mathe, Deutsch, Englisch und weitere Fächer — spielerisch lernen.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            {subjects.map((s) => (
+            {SUBJECT_CATALOG.map((s) => (
               <Link
-                key={s.id}
-                href={`/faecher/${slugForSubject(s.id)}/`}
+                key={s.slug}
+                href={`/faecher/${s.slug}/`}
                 className="rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm text-slate-200 hover:border-indigo-400/40"
               >
-                {s.labelDe}
-                {s.status !== "active" ? " (folgt)" : ""}
+                {s.title}
+                {s.status === "bald" ? " — bald" : ""}
               </Link>
             ))}
-            <Link
-              href="/faecher/deutsch/"
-              className="rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm text-slate-200 hover:border-indigo-400/40"
-            >
-              Deutsch (folgt)
-            </Link>
           </div>
         </section>
 
-        {/* Sicherheit */}
         <section className="eq-card my-8 space-y-3 p-6">
           <h2 className="font-display text-2xl font-bold text-white">
             Sicherheit & Datenschutz für Kinder
           </h2>
           <ul className="list-disc space-y-2 pl-5 text-sm text-slate-300">
-            <li>Einwilligung der Eltern unter 16 (DSGVO Art. 8) in der Registrierung</li>
+            <li>
+              Einwilligung der Erziehungsberechtigten unter 16 (DSGVO Art. 8)
+            </li>
             <li>Keine öffentlichen Schülerprofile</li>
             <li>Gast-Probe ohne Namen und E-Mail</li>
             <li>Lehrkraft steuert Live-Stunden und Freigaben</li>
-            {showServerDe && <li>Hosting-Standort Deutschland (wenn so betrieben)</li>}
+            {showServerDe && (
+              <li>Hosting-Standort Deutschland (wenn so betrieben)</li>
+            )}
           </ul>
-          <Link href="/datenschutz/" className="text-sm text-indigo-300 hover:underline">
+          <Link
+            href="/datenschutz/"
+            className="text-sm text-indigo-300 hover:underline"
+          >
             Datenschutzerklärung
           </Link>
         </section>
 
-        {/* Preise kurz */}
         {site.pricingMode !== "hidden" && (
           <section className="py-10">
             <h2 className="font-display text-2xl font-bold text-white">Preise</h2>
@@ -208,7 +216,6 @@ export default function LandingPage() {
           </section>
         )}
 
-        {/* FAQ */}
         <section id="faq" className="py-12">
           <h2 className="font-display text-2xl font-bold text-white">FAQ</h2>
           <div className="mt-4 space-y-3">
@@ -231,7 +238,6 @@ export default function LandingPage() {
           <NewsletterForm />
         </section>
 
-        {/* Abschluss */}
         <section className="py-14 text-center">
           <h2 className="font-display text-3xl font-bold text-white">
             Bereit für die erste Quest?
@@ -259,14 +265,6 @@ export default function LandingPage() {
       </main>
     </div>
   );
-}
-
-function slugForSubject(id: string): string {
-  if (id === "math") return "mathe";
-  if (id === "english") return "englisch";
-  if (id === "science") return "naturwissenschaften";
-  if (id === "history") return "geschichte";
-  return id;
 }
 
 function AudienceCard({
