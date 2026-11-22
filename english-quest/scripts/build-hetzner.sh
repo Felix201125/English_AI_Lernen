@@ -54,10 +54,18 @@ fi
 chmod 755 "$DIST/api/data" || true
 
 # Static export: echte 404 statt Soft-SPA auf Startseite
+# WICHTIG: mod_pagespeed darf /_next/static nicht umschreiben (404 *.pagespeed.ce.*)
 cat > "$DIST/.htaccess" <<'EOF'
 Options -MultiViews
 RewriteEngine On
 ErrorDocument 404 /404.html
+
+# Next.js liefert fingerprintierte Assets unter /_next/ — Pagespeed darauf = 404
+<IfModule pagespeed_module>
+  ModPagespeed off
+  # Fallback, falls Off in der VHost-Policy überschrieben wird:
+  ModPagespeedDisallow "*/_next/*"
+</IfModule>
 
 # Keep PHP API reachable
 RewriteRule ^api/ - [L]
@@ -65,6 +73,12 @@ RewriteRule ^api/ - [L]
 # Gast-Probe-Aliase
 RewriteRule ^demo/?$ /ausprobieren/ [R=301,L]
 RewriteRule ^probe/?$ /ausprobieren/ [R=301,L]
+
+# Alte Public-Routen (Auftrag 7)
+RewriteRule ^pricing/?$ /preise/ [R=301,L]
+RewriteRule ^tutors/?$ /lehrkraefte/ [R=301,L]
+RewriteRule ^tutoren/?$ /lehrkraefte/ [R=301,L]
+RewriteRule ^discover/?$ /#so-funktionierts [R=301,NE,L]
 
 # Serve existing files/directories
 RewriteCond %{REQUEST_FILENAME} -f [OR]
@@ -82,9 +96,14 @@ RewriteRule ^(.*)$ $1.html [L]
 RewriteRule ^ - [R=404,L]
 EOF
 
+echo "→ Asset-Smoke (lokal dist)…"
+node "$ROOT/scripts/smoke-assets.mjs" "$DIST"
+echo "→ Link-Checker…"
+node "$ROOT/scripts/check-links.mjs" "$DIST"
+
 echo ""
 echo "✅ Fertig: $DIST"
 echo "1) Ordner-Inhalt per FTP/SFTP auf Hetzner Webhosting hochladen (Document Root)"
-echo "2) api/config.php → mistral_api_key + daily_api_key eintragen"
-echo "3) api/config.php → google_client_id (Google Cloud OAuth Web-Client)"
-echo "4) Website → Registrieren / Anmelden (E-Mail oder Google)"
+echo "2) api/config.php → mistral_api_key + daily_api_key eintragen (nicht überschreiben)"
+echo "3) Nach Deploy: Pagespeed-Cache leeren (siehe HETZNER.md) + BASE_URL=… npm run smoke:assets"
+echo "4) google_client_id nur wenn Google-Login gewünscht"

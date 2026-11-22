@@ -1,0 +1,13 @@
+# Beispiel VirtualHost / Directory für Qestra auf Hetzner (Apache + mod_pagespeed).
+# In die Site-Config übernehmen oder die Direktiven in die Document-Root-.htaccess
+# (wird von build:hetzner geschrieben). Next.js liefert /_next/static bereits
+# fingerprintiert und komprimierbar — Pagespeed darf diese URLs nicht umschreiben.
+
+<IfModule pagespeed_module>
+  # Bevorzugt: Pagespeed für diese Site komplett aus
+  ModPagespeed off
+
+  # Falls betrieblich nur eingeschränkt möglich:
+  # ModPagespeed on
+  # ModPagespeedDisallow "*/_next/*"
+</IfModule>

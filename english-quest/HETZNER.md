@@ -107,6 +107,40 @@ Staging (`devlearn.klarland.net`): `NEXT_PUBLIC_FORCE_NOINDEX=1` (Default in `bu
 
 Ohne Google: `google_client_id` leer lassen — der Button erscheint nicht.
 
+## 9. mod_pagespeed und Next.js (Auftrag 7 — P0)
+
+**Problem (verifiziert 21.11.2026):** Apache `mod_pagespeed` schrieb `/_next/static/…` zu `*.pagespeed.ce.*.js` / `*.pagespeed.cf.*.css` um → **404**. Folge: ungestyltes HTML, Login/Register hängen bei „Laden…“, Probe-Kacheln tot. Header damals: `x-mod-pagespeed: 1.14.36.1-0`.
+
+**Fix (im Repo):** Die ausgelieferte Document-Root-`.htaccess` (geschrieben von `npm run build:hetzner`) enthält:
+
+```apache
+<IfModule pagespeed_module>
+  ModPagespeed off
+  ModPagespeedDisallow "*/_next/*"
+</IfModule>
+```
+
+Next.js fingerprintiert und optimiert `/_next/static` selbst — Pagespeed darauf ist schädlich. VHost-Beispiel: `deploy/apache-qestra.conf.example`.
+
+**Cache leeren nach Config-Änderung und nach jedem relevanten Deploy** (Hetzner Webhosting, üblich):
+
+```bash
+# Per SSH, falls vorhanden — Pfad kann je nach Tarif variieren:
+# find /var/cache/mod_pagespeed -type f -delete
+# oder im Kundenpanel / Server-Dok: „Pagespeed-Cache leeren“
+touch ~/public_html/.htaccess   # erzwingt oft Reload der Directory-Config
+```
+
+Nach dem Flush in einer **privaten** Browser-Session prüfen: Im HTML von `/` darf **kein** `pagespeed` in Asset-URLs stehen. Alle `/_next/static/…`-Links müssen **200** sein.
+
+**Post-Deploy-Smoke (gegen die öffentliche Origin, nicht nur lokal):**
+
+```bash
+BASE_URL=https://devlearn.klarland.net npm run smoke:assets
+```
+
+Der Test ist rot, sobald eine Asset-URL `pagespeed` enthält oder ein `/_next/`-Asset nicht 200 liefert.
+
 ## Sicherheit
 
 - Keys nur in `api/config.php`
