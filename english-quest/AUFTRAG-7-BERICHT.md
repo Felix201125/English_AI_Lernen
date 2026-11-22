@@ -35,6 +35,7 @@ Bezug: Befund 21.11.2026 (mod_pagespeed → 404 auf `/_next/static`)
 - Themen mit `needs_operator_review` in `subjects.ts` fachlich gegenchecken
 - Echten OAuth-Abschluss in CI nicht erzwungen (kein Client-ID-Zwang)
 - Lighthouse ≥90 auf Staging nach Pagespeed-Fix manuell bestätigen
+- Playwright-Browser: auf diesem macOS 13 (darwin 22) schlägt `npx playwright install chromium` mit „does not support chromium on mac13“ fehl — Specs liegen unter `e2e/`; Ausführung auf neuerem macOS/CI oder nach Deploy manuell gegen `out`/Origin
 
 ## Env / Betreiber
 
