@@ -59,3 +59,9 @@ npm run test:e2e
 ```
 
 Wichtig: Asset-Check **gegen die öffentliche Origin** nach jedem Deploy — lokal allein hätte den Befund vom 21.11. nicht erkannt.
+
+## Deploy-Status (22.11.2026)
+
+- **Repo/Branch:** A–H im Code auf `fix/auftrag-7-stabilitaet-feinschliff` (Build + lokaler Smoke/Link-Check grün).
+- **Live `https://devlearn.klarland.net`:** vor Upload noch **rot** — `smoke:assets` findet weiterhin `*.pagespeed.ce.*` / `*.pagespeed.cf.*` und alte Landing-Texte (Auftrag 6).
+- **FTP-push:** frisch aus `dist-hetzner/` befüllt inkl. Pagespeed-`.htaccess` — bitte hochladen, Cache flushen, dann erneut `BASE_URL=… npm run smoke:assets`.
